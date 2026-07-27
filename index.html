@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Reference | Patterns, Commits & Linux</title>
+    <!-- Prism.js CSS pro zvýraznění syntaxe kódu -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0284c7;
+            --border-color: #334155;
+            --card-bg: #1e293b;
+            --sidebar-width: 290px;
+            --badge-creational: #ec4899;
+            --badge-structural: #3b82f6;
+            --badge-behavioral: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+        }
+
+        /* Postranní navigace */
+        aside {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+        }
+
+        aside h2 {
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        aside p.subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .search-box {
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin: 1.2rem 0 0.4rem 0;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.2rem;
+        }
+
+        aside ul {
+            list-style: none;
+        }
+
+        aside li {
+            margin-bottom: 0.2rem;
+        }
+
+        aside a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: block;
+            padding: 0.3rem 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        aside a:hover {
+            color: var(--text-color);
+            background-color: var(--border-color);
+        }
+
+        /* Hlavní obsah */
+        main {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header.page-header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header.page-header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header.page-header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        header.section-header {
+            margin: 3rem 0 1.5rem 0;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        header.section-header h2 {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+        }
+
+        header.section-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Sekce karet */
+        .pattern-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            scroll-margin-top: 2rem;
+        }
+
+        .pattern-card h3 {
+            font-size: 1.3rem;
+            color: var(--accent-color);
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .pattern-card p {
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        .pattern-card code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            color: var(--accent-color);
+            font-size: 0.9em;
+        }
+
+        /* Badge pro kategorie patternů */
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-creational {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--badge-creational);
+            border: 1px solid var(--badge-creational);
+        }
+
+        .badge-structural {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--badge-structural);
+            border: 1px solid var(--badge-structural);
+        }
+
+        .badge-behavioral {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--badge-behavioral);
+            border: 1px solid var(--badge-behavioral);
+        }
+
+        /* Tabulky */
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .custom-table th, .custom-table td {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .custom-table th {
+            color: var(--accent-color);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .custom-table td:first-child {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* Úprava Prism.js */
+        pre[class*="language-"] {
+            border-radius: 8px;
+            margin: 1rem 0 1rem 0 !important;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Responzivita */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            aside {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            main {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Postranní lišta -->
+    <sidebar>
+        <h2>Dev Reference</h2>
+        <p class="subtitle">Complete Knowledge Base</p>
+        
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Hledat cokoliv..." onkeyup="filterNav()">
+        </div>
+
+        <div class="nav-section-title">Linux CLI</div>
+        <ul>
+            <li><a href="#linux-files">Linux: Soubory a Složky</a></li>
+            <li><a href="#linux-system">Linux: Systém a Procesy</a></li>
+            <li><a href="#linux-users">Linux: Uživatelé a Práva</a></li>
+            <li><a href="#linux-help">Linux: Nápověda</a></li>
+        </ul>
+
+        <div class="nav-section-title">Git Convention</div>
+        <ul>
+            <li><a href="#conventional-commits">Conventional Commits</a></li>
+        </ul>
+
+        <div class="nav-section-title">GoF Design Patterns</div>
+        <ul>
+            <li><a href="#gof-creational">Vytvářecí (Creational)</a></li>
+            <li><a href="#gof-structural">Strukturální (Structural)</a></li>
+            <li><a href="#gof-behavioral">Chování (Behavioral)</a></li>
+        </ul>
+
+        <div class="nav-section-title">React Patterns</div>
+        <ul>
+            <li><a href="#pattern-1">1. Single Responsibility</a></li>
+            <li><a href="#pattern-2">2. Container & Presentation</a></li>
+            <li><a href="#pattern-3">3. Compound Components</a></li>
+            <li><a href="#pattern-4">4. Nested Prop Forwarding</a></li>
+            <li><a href="#pattern-5">5. Children Components</a></li>
+            <li><a href="#pattern-6">6. Custom Hooks</a></li>
+            <li><a href="#pattern-7">7. Higher Order Components</a></li>
+            <li><a href="#pattern-8">8. Variant Props</a></li>
+            <li><a href="#pattern-9">9. Expose via Ref</a></li>
+            <li><a href="#pattern-10">10. Providers for Data</a></li>
+        </ul>
+    </sidebar>
+
+    <!-- Hlavní obsah stránky -->
+    <main>
+        <header class="page-header">
+            <h1>Developer Quick Reference</h1>
+            <p>Rychlý přehled pro vývojáře: Linuxové příkazy, Git konvence, klasické GoF návrhové vzory a React design patterny.</p>
+        </header>
+
+        <!-- SEKCIE: LINUX COMMANDS -->
+        <header class="section-header" id="linux-section">
+            <h2>Linux CLI Příkazy</h2>
+            <p>Základní příkazy převzaté z <a href="https://wiki.ubuntu.cz/z%C3%A1kladn%C3%AD_p%C5%99%C3%ADkazy" target="_blank" rel="noopener">Wiki Ubuntu CZ</a>.</p>
+        </header>
+
+        <article class="pattern-card" id="linux-files">
+            <h3>Práce se soubory a adresáři</h3>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Příkaz</th>
+                        <th>Popis / Příklady</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>pwd</code></td><td>Vypíše aktuální pracovní adresář (Print Working Directory).</td></tr>
+                    <tr><td><code>ls</code></td><td>Vypíše obsah adresáře. <code>ls -la</code> (detailní výpis včetně skrytých).</td></tr>
+                    <tr><td><code>cd [cesta]</code></td><td>Změna adresáře. <code>cd ..</code> (o úroveň výš), <code>cd ~</code> (domovský), <code>cd -</code> (předchozí).</td></tr>
+                    <tr><td><code>mkdir [nazev]</code></td><td>Vytvoří novou složku. <code>mkdir -p slozka/podslozka</code> vytvoří celou cestu.</td></tr>
+                    <tr><td><code>rm [soubor]</code></td><td>Smaže soubor. <code>rm -r [slozka]</code> smaže složku rekurzivně.</td></tr>
+                    <tr><td><code>cp [zdroj] [cil]</code></td><td>Kopíruje soubor. <code>cp -r [zdroj_slozka] [cil]</code> rekurzivně kopíruje složku.</td></tr>
+                    <tr><td><code>mv [zdroj] [cil]</code></td><td>Přesune nebo přejmenuje soubor/složku.</td></tr>
+                    <tr><td><code>touch [soubor]</code></td><td>Vytvoří nový prázdný soubor nebo aktualizuje čas modifikace.</td></tr>
+                    <tr><td><code>cat / less</code></td><td><code>cat</code> vypíše celý soubor, <code>less</code> otevře stránkovatelný náhled.</td></tr>
+                    <tr><td><code>grep "[text]"</code></td><td>Vyhledává text v souboru. <code>grep -ri "Search" .</code> (rekurzivně bez ohledu na velikost písem).</td></tr>
+                </tbody>
+            </table>
+        </article>
+
+        <article class="pattern-card" id="linux-system">
+            <h3>Správa systému, disků a procesů</h3>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Příkaz</th>
+                        <th>Popis / Příklady</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>sudo [prikaz]</code></td><td>Spustí příkaz s právy správce (root).</td></tr>
+                    <tr><td><code>top / htop</code></td><td>Interaktivní správce procesů a vytížení systému (CPU, RAM).</td></tr>
+                    <tr><td><code>ps aux</code></td><td>Vypíše všechny běžící procesy. Často: <code>ps aux | grep node</code>.</td></tr>
+                    <tr><td><code>kill [PID]</code></td><td>Ukončí proces podle PID. <code>kill -9 [PID]</code> vynutí ukončení.</td></tr>
+                    <tr><td><code>df -h</code></td><td>Zobrazí zaplnění disků v lidsky čitelné podobě (MB, GB).</td></tr>
+                    <tr><td><code>du -sh [slozka]</code></td><td>Spočítá a zobrazí velikost konkrétní složky.</td></tr>
+                    <tr><td><code>free -h</code></td><td>Zobrazí stav RAM a SWAPu.</td></tr>
+                    <tr><td><code>sudo apt update && sudo apt upgrade</code></td><td>Aktualizuje balíčky v systému (Ubuntu/Debian).</td></tr>
+                </tbody>
+            </table>
+        </article>
+
+        <article class="pattern-card" id="linux-users">
+            <h3>Uživatelé a přístupová práva</h3>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Příkaz</th>
+                        <th>Popis / Příklady</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>chmod [prava] [soubor]</code></td><td>Změní práva souboru (např. <code>chmod +x script.sh</code>, <code>chmod 755 file</code>).</td></tr>
+                    <tr><td><code>chown [vlastnik]:[skupina]</code></td><td>Změní vlastníka souboru (např. <code>chown www-data:www-data index.php</code>).</td></tr>
+                    <tr><td><code>whoami</code></td><td>Vypíše jméno aktuálně přihlášeného uživatele.</td></tr>
+                </tbody>
+            </table>
+        </article>
+
+        <article class="pattern-card" id="linux-help">
+            <h3>Získání nápovědy</h3>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Příkaz</th>
+                        <th>Popis / Příklady</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>[prikaz] --help</code></td><td>Stručná nápověda k příkazu.</td></tr>
+                    <tr><td><code>man [prikaz]</code></td><td>Kompletní manuálová stránka příkazu (stisk <code>q</code> pro ukončení).</td></tr>
+                </tbody>
+            </table>
+        </article>
+
+        <!-- SEKCIE: CONVENTIONAL COMMITS -->
+        <header class="section-header" id="commits-section">
+            <h2>Git Convention</h2>
+            <p>Specifikace <a href="https://www.conventionalcommits.org/en/v1.0.0/" target="_blank" rel="noopener">Conventional Commits (v1.0.0)</a>.</p>
+        </header>
+
+        <article class="pattern-card" id="conventional-commits">
+            <h3>Conventional Commits (v1.0.0)</h3>
+            <p>Standard pro přehledné a automatizovatelné commit zprávy.</p>
+
+            <pre><code class="language-git">&lt;type&gt;[&optional scope]: &lt;description&gt;
+
+[optional body]
+
+[optional footer(s)]</code></pre>
+
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Typ</th>
+                        <th>SemVer</th>
+                        <th>Popis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>feat</code></td><td>MINOR</td><td>Přidání nové funkcionality do aplikace.</td></tr>
+                    <tr><td><code>fix</code></td><td>PATCH</td><td>Oprava chyby / bugu v kódu.</td></tr>
+                    <tr><td><code>docs</code></td><td>-</td><td>Změny pouze v dokumentaci.</td></tr>
+                    <tr><td><code>style</code></td><td>-</td><td>Úpravy stylu kódu (středníky, mezery, bez změny logiky).</td></tr>
+                    <tr><td><code>refactor</code></td><td>-</td><td>Refaktoring kódu (ani bugfix, ani feat).</td></tr>
+                    <tr><td><code>perf</code></td><td>-</td><td>Změna kódu pro zvýšení výkonu.</td></tr>
+                    <tr><td><code>test</code></td><td>-</td><td>Přidání nebo oprava testů.</td></tr>
+                    <tr><td><code>build / ci</code></td><td>-</td><td>Změny v buildu, závislostech nebo CI/CD skriptech.</td></tr>
+                    <tr><td><code>chore</code></td><td>-</td><td>Ostatní úpravy neměnící produkční kód.</td></tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 1rem;"><strong>Příklady:</strong></p>
+            <pre><code class="language-git">feat(auth): přidáno přihlášení přes Google
+fix(parser): oprava přetékání řetězce
+feat(api)!: změna struktury odpovědi (BREAKING CHANGE)</code></pre>
+        </article>
+
+        <!-- SEKCIE: GOF DESIGN PATTERNS -->
+        <header class="section-header" id="gof-section">
+            <h2>GoF Design Patterns (Refactoring.Guru)</h2>
+            <p>Přehled 22 klasických návrhových vzorů podle knihy Gang of Four z katalogu <a href="https://refactoring.guru/design-patterns/catalog" target="_blank" rel="noopener">Refactoring.Guru</a>.</p>
+        </header>
+
+        <!-- Creational Patterns -->
+        <article class="pattern-card" id="gof-creational">
+            <h3>Vytvářecí vzory (Creational Patterns) <span class="badge badge-creational">Creational</span></h3>
+            <p>Řeší mechanismy vytváření objektů, zvyšují flexibilitu a opakovatelnost kódu.</p>
+
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Vzor</th>
+                        <th>Účel / Popis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Factory Method</code></td>
+                        <td>Definuje rozhraní pro vytváření objektu, ale nechává podtřídy rozhodnout, kterou třídu instancovat.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Abstract Factory</code></td>
+                        <td>Umožňuje vytvářet rodiny souvisejících nebo závislých objektů bez specifikování jejich konkrétních tříd.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Builder</code></td>
+                        <td>Odděluje konstrukci složitého objektu od jeho reprezentace, což umožňuje stejným konstrukčním postupem vytvářet různé reprezentace.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Prototype</code></td>
+                        <td>Umožňuje kopírovat existující objekty bez závislosti na jejich konkrétních třídách (klonování).</td>
+                    </tr>
+                    <tr>
+                        <td><code>Singleton</code></td>
+                        <td>Zajišťuje, že třída má pouze jednu instanci, a poskytuje k ní globální přístupový bod.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 1rem;"><strong>Příklad: Singleton (TypeScript)</strong></p>
+            <pre><code class="language-typescript">class Database {
+  private static instance: Database;
+
+  private constructor() { /* privatni konstruktor */ }
+
+  public static getInstance(): Database {
+    if (!Database.instance) {
+      Database.instance = new Database();
+    }
+    return Database.instance;
+  }
+}</code></pre>
+        </article>
+
+        <!-- Structural Patterns -->
+        <article class="pattern-card" id="gof-structural">
+            <h3>Strukturální vzory (Structural Patterns) <span class="badge badge-structural">Structural</span></h3>
+            <p>Vysvětlují, jak skládat objekty a třídy do větších struktur při zachování pružnosti a efektivity.</p>
+
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Vzor</th>
+                        <th>Účel / Popis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Adapter</code></td>
+                        <td>Umožňuje objektům s nekompatibilním rozhraním spolupracovat (převodník/adaptér).</td>
+                    </tr>
+                    <tr>
+                        <td><code>Bridge</code></td>
+                        <td>Rozděluje velkou třídu nebo sadu souvisejících tříd na dvě samostatné hierarchie (abstrakce a implementace), které lze vyvíjet nezávisle.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Composite</code></td>
+                        <td>Umožňuje skládat objekty do stromových struktur a pracovat s jednotlivými objekty i celými strukturami stejně.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Decorator</code></td>
+                        <td>Umožňuje dynamicky přidávat objektům nové funkčnosti zabalením do nových objektů (wrappery).</td>
+                    </tr>
+                    <tr>
+                        <td><code>Facade</code></td>
+                        <td>Poskytuje zjednodušené rozhraní ke složitému systému tříd, knihovně nebo frameworku.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Flyweight</code></td>
+                        <td>Šetří paměť sdílením společných částí stavu mezi velkým množstvím objektů.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Proxy</code></td>
+                        <td>Poskytuje zástupce nebo objektový "zástupný symbol" pro jiný objekt za účelem řízení přístupu k němu.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 1rem;"><strong>Příklad: Decorator (TypeScript)</strong></p>
+            <pre><code class="language-typescript">interface Coffee { getCost(): number; }
+
+class SimpleCoffee implements Coffee {
+  getCost() { return 10; }
+}
+
+class MilkDecorator implements Coffee {
+  constructor(private coffee: Coffee) {}
+  getCost() { return this.coffee.getCost() + 2; }
+}</code></pre>
+        </article>
+
+        <!-- Behavioral Patterns -->
+        <article class="pattern-card" id="gof-behavioral">
+            <h3>Vzor chování (Behavioral Patterns) <span class="badge badge-behavioral">Behavioral</span></h3>
+            <p>Zabývají se efektivní komunikací a dělbou odpovědností mezi objekty.</p>
+
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Vzor</th>
+                        <th>Účel / Popis</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>Chain of Responsibility</code></td>
+                        <td>Umožňuje předávat požadavky podél řetězce zpracovatelů. Každý zpracovatel se rozhodne, zda požadavek zpracuje nebo předá dál.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Command</code></td>
+                        <td>Mění požadavek na samostatný objekt obsahující všechny informace o požadavku (umožňuje undo/redo, fronty...).</td>
+                    </tr>
+                    <tr>
+                        <td><code>Iterator</code></td>
+                        <td>Umožňuje procházet prvky kolekce, aniž by vystavoval její vnitřní reprezentaci.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Mediator</code></td>
+                        <td>Omezuje přímou komunikaci mezi objekty a nutí je spolupracovat výhradně prostřednictvím objektu mediátoru.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Memento</code></td>
+                        <td>Umožňuje uložit a obnovit předchozí stav objektu bez porušení zapouzdření.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Observer</code></td>
+                        <td>Definuje mechanismus odběru pro upozorňování více objektů o jakýchkoli událostech, které se stanou v pozorovaném objektu.</td>
+                    </tr>
+                    <tr>
+                        <td><code>State</code></td>
+                        <td>Umožňuje objektu změnit své chování při změně jeho vnitřního stavu (vypadá, jako by změnil svou třídu).</td>
+                    </tr>
+                    <tr>
+                        <td><code>Strategy</code></td>
+                        <td>Definuje rodinu algoritmů, zapouzdří každý z nich a dělá je vzájemně zaměnitelné.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Template Method</code></td>
+                        <td>Definuje kostru algoritmu v nadtřídě, ale nechává podtřídy přepsat konkrétní kroky bez změny struktury.</td>
+                    </tr>
+                    <tr>
+                        <td><code>Visitor</code></td>
+                        <td>Umožňuje oddělit algoritmy od objektů, na kterých pracují (přidává nové operace bez úpravy tříd).</td>
+                    </tr>
+                </tbody>
+            </table>
+        </article>
+
+        <!-- SEKCIE: REACT PATTERNS -->
+        <header class="section-header" id="react-section">
+            <h2>React Design Patterns</h2>
+            <p>Kolekce vzorů od autora <a href="https://cosden.solutions" target="_blank" rel="noopener">Cosden Solutions</a>.</p>
+        </header>
+
+        <!-- Pattern 1 -->
+        <article class="pattern-card" id="pattern-1">
+            <h3>1. Single Responsibility Principle</h3>
+            <p>Komponenta by měla mít pouze jednu zodpovědnost a ostatní logiku delegovat jinam.</p>
+
+            <pre><code class="language-tsx">// ✅ Rozdělení na hooky a menší komponenty
+export function useFetchData() {
+  return useQuery({
+    queryKey: ['data'],
+    queryFn: () => fetch('/api/data'),
+  });
+}
+
+function BigComponent() {
+  const data = useFetchData();
+  return <Modal>{/* UI obsah */}</Modal>;
+}</code></pre>
+        </article>
+
+        <!-- Pattern 2 -->
+        <article class="pattern-card" id="pattern-2">
+            <h3>2. Container and Presentation Components</h3>
+            <p>Oddělení logiky (Container) od vykreslování uživatelského rozhraní (Presentation).</p>
+
+            <pre><code class="language-tsx">// Container
+function ContainerComponent() {
+  const [items, setItems] = useState([]);
+  return <PresentationComponent items={items} />;
+}
+
+// Presentation
+function PresentationComponent({ items }) {
+  return <>{items.map(item => <ItemCard key={item.id} item={item} />)}</>;
+}</code></pre>
+        </article>
+
+        <!-- Pattern 3 -->
+        <article class="pattern-card" id="pattern-3">
+            <h3>3. Compound Components Pattern</h3>
+            <p>Propojení souvisejících komponent pomocí Context API pro flexibilní API rozhraní.</p>
+
+            <pre><code class="language-tsx">export default function Toggle({ children }) {
+  const [on, setOn] = useState(false);
+  return <ToggleContext.Provider value={{ on, setOn }}>{children}</ToggleContext.Provider>;
+}
+
+Toggle.Button = function ToggleButton(props) {
+  const { setOn } = useContext(ToggleContext);
+  return <button onClick={() => setOn(prev => !prev)} {...props} />;
+};</code></pre>
+        </article>
+
+        <!-- Pattern 4 -->
+        <article class="pattern-card" id="pattern-4">
+            <h3>4. Nested Prop Forwarding</h3>
+            <p>Předávání props do zanořených komponent.</p>
+
+            <pre><code class="language-tsx">function Button({ children, textProps, ...rest }) {
+  return (
+    <button {...rest}>
+      <Text {...textProps}>{children}</Text>
+    </button>
+  );
+}</code></pre>
+        </article>
+
+        <!-- Pattern 5 -->
+        <article class="pattern-card" id="pattern-5">
+            <h3>5. Children Components Pattern</h3>
+            <p>Optimalizace výkonu předáváním komponent skrze <code>children</code> prop.</p>
+
+            <pre><code class="language-tsx">function Component({ children }) {
+  const [count, setCount] = useState(0);
+  return <div><button onClick={() => setCount(c => c + 1)}>{count}</button>{children}</div>;
+}</code></pre>
+        </article>
+
+        <!-- Pattern 6 -->
+        <article class="pattern-card" id="pattern-6">
+            <h3>6. Custom Hooks</h3>
+            <p>Extrahování znovupoužitelné stavové logiky do vlastních hooků.</p>
+
+            <pre><code class="language-tsx">export function useFilteredItems() {
+  const [items, setItems] = useState([]);
+  const [filters, setFilters] = useState({});
+  return { items, filters, setFilters };
+}</code></pre>
+        </article>
+
+        <!-- Pattern 7 -->
+        <article class="pattern-card" id="pattern-7">
+            <h3>7. Higher Order Components (HOC)</h3>
+            <p>Funkce přijímající komponentu a vracející její vylepšenou verzi.</p>
+
+            <pre><code class="language-tsx">function withStyles(Component) {
+  return props => <Component style={{ padding: 8 }} {...props} />;
+}</code></pre>
+        </article>
+
+        <!-- Pattern 8 -->
+        <article class="pattern-card" id="pattern-8">
+            <h3>8. Variant Props</h3>
+            <p>Kustomizace vzhledu komponenty pomocí předdefinovaných sad stylů.</p>
+
+            <pre><code class="language-tsx">function Button({ variant = 'primary', ...rest }) {
+  return <button style={styles.variant[variant]} {...rest} />;
+}</code></pre>
+        </article>
+
+        <!-- Pattern 9 -->
+        <article class="pattern-card" id="pattern-9">
+            <h3>9. Expose functionality through ref</h3>
+            <p>Zpřístupnění vnitřní logiky potomka směrem k rodiči přes <code>useImperativeHandle</code>.</p>
+
+            <pre><code class="language-tsx">function Component({ componentRef }) {
+  const [count, setCount] = useState(0);
+  useImperativeHandle(componentRef, () => ({ reset: () => setCount(0) }));
+  return <div>{count}</div>;
+}</code></pre>
+        </article>
+
+        <!-- Pattern 10 -->
+        <article class="pattern-card" id="pattern-10">
+            <h3>10. Use providers for frequently used data</h3>
+            <p>Sdílení často používaných dat v rámci aplikace pomocí Context Provideru.</p>
+
+            <pre><code class="language-tsx">export function UserProvider({ children }) {
+  const { data: user } = useFetchUser();
+  if (!user) return <div>Loading...</div>;
+  return <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>;
+}</code></pre>
+        </article>
+
+    </main>
+
+    <!-- Skripty -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-jsx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-tsx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-git.min.js"></script>
+
+    <script>
+        // Globální vyhledávání v navigaci
+        function filterNav() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const links = document.querySelectorAll('sidebar ul li');
+
+            links.forEach(li => {
+                const a = li.querySelector('a');
+                const txtValue = a.textContent || a.innerText;
+                if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                    li.style.display = "";
+                } else {
+                    li.style.display = "none";
+                }
+            });
+        }
+
+        document.getElementById('searchInput')?.addEventListener('input', filterNav);
+    </script>
+</body>
+</html>
