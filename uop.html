@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Studijní přehled předmětu Unix Operating Systems: Linuxové příkazy, shell, úložiště, systemd, balíčky a sítě.">
+    <title>UOP | Linux a Unix Operating Systems</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --page: #101820;
+            --panel: #182630;
+            --panel-raised: #203440;
+            --text: #edf4f3;
+            --muted: #a4b6b8;
+            --line: #344a54;
+            --accent: #70d6bd;
+            --accent-strong: #b0f0dc;
+            --warning: #ffc36e;
+            --danger: #ff8e87;
+            --sidebar-width: 250px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            background: var(--page);
+            color: var(--text);
+            font-family: Inter, "Segoe UI", sans-serif;
+            line-height: 1.65;
+        }
+
+        a { color: var(--accent-strong); text-underline-offset: 3px; }
+        a:hover { color: #fff; }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            width: var(--sidebar-width);
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+            background: #17252e;
+            border-right: 1px solid var(--line);
+        }
+
+        .brand {
+            margin: 0;
+            color: var(--accent);
+            font-size: 1.1rem;
+            font-weight: 750;
+        }
+
+        .brand-note {
+            margin: 0.15rem 0 1.2rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .back-link {
+            margin-bottom: 1.1rem;
+            font-size: 0.88rem;
+        }
+
+        .search-label {
+            display: block;
+            margin-bottom: 0.35rem;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--page);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.9rem;
+        }
+
+        #searchInput:focus-visible, a:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        .search-status {
+            min-height: 1.4rem;
+            margin: 0.35rem 0 0.8rem;
+            color: var(--muted);
+            font-size: 0.76rem;
+        }
+
+        .nav-title {
+            margin: 1rem 0 0.35rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 750;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .sidebar ul { margin: 0; padding: 0; list-style: none; }
+        .sidebar li { margin: 0.1rem 0; }
+
+        .sidebar nav a {
+            display: block;
+            padding: 0.3rem 0.45rem;
+            border-radius: 4px;
+            color: var(--muted);
+            font-size: 0.84rem;
+            text-decoration: none;
+        }
+
+        .sidebar nav a:hover, .sidebar nav a[aria-current="location"] {
+            background: var(--panel-raised);
+            color: var(--text);
+        }
+
+        main {
+            width: min(100% - var(--sidebar-width), 1120px);
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem) 5rem;
+        }
+
+        .eyebrow {
+            margin: 0 0 0.6rem;
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 750;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+        .page-header {
+            padding: 0 0 2rem;
+            border-bottom: 1px solid var(--line);
+        }
+
+        h1 {
+            max-width: 780px;
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 3.5rem);
+            line-height: 1.12;
+        }
+
+        .intro {
+            max-width: 760px;
+            margin: 1rem 0 0;
+            color: var(--muted);
+            font-size: 1.05rem;
+        }
+
+        .quick-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.55rem;
+            margin-top: 1.4rem;
+        }
+
+        .quick-links a {
+            padding: 0.35rem 0.7rem;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            color: var(--text);
+            font-size: 0.84rem;
+            text-decoration: none;
+        }
+
+        .quick-links a:hover { border-color: var(--accent); color: var(--accent-strong); }
+
+        .section-heading {
+            margin: 3rem 0 1.2rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 1px solid var(--line);
+            scroll-margin-top: 1.25rem;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            color: var(--accent);
+            font-size: 1.75rem;
+            line-height: 1.25;
+        }
+
+        .section-heading p { margin: 0.35rem 0 0; color: var(--muted); }
+
+        .topic {
+            margin: 1.1rem 0;
+            padding: 1.25rem clamp(1rem, 3vw, 1.65rem);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--panel);
+            scroll-margin-top: 1rem;
+        }
+
+        .topic h3 { margin: 0 0 0.55rem; font-size: 1.2rem; }
+        .topic h4 { margin: 1.15rem 0 0.35rem; color: var(--accent-strong); font-size: 1rem; }
+        .topic p { margin: 0.5rem 0; color: var(--muted); }
+        .topic ul, .topic ol { padding-left: 1.35rem; }
+        .topic li { margin: 0.2rem 0; }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            margin: 0.75rem 0;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.58rem 0.65rem;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th { color: var(--accent-strong); font-size: 0.82rem; }
+        td:first-child { width: 28%; }
+        td code, p code, li code { color: var(--accent-strong); }
+
+        pre {
+            max-width: 100%;
+            margin: 0.75rem 0;
+            padding: 0.9rem 1rem;
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            background: #101a20;
+            color: #e9f2ef;
+            font-size: 0.86rem;
+            line-height: 1.55;
+            tab-size: 2;
+        }
+
+        .callout {
+            margin: 0.8rem 0;
+            padding: 0.75rem 0.9rem;
+            border-left: 3px solid var(--accent);
+            background: var(--panel-raised);
+            color: var(--muted);
+        }
+
+        .callout.warning { border-color: var(--warning); }
+        .callout.danger { border-color: var(--danger); }
+        .tag { color: var(--warning); font-size: 0.75rem; font-weight: 750; text-transform: uppercase; }
+        .muted { color: var(--muted); }
+        .empty-state { display: none; margin: 1rem 0; color: var(--muted); }
+        footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+
+        @media (max-width: 800px) {
+            .sidebar {
+                position: sticky;
+                inset: 0 0 auto;
+                width: 100%;
+                max-height: 42vh;
+                padding: 0.8rem 1rem;
+                border-right: 0;
+                border-bottom: 1px solid var(--line);
+            }
+            .brand-note, .back-link { display: none; }
+            .nav-title { margin-top: 0.55rem; }
+            .sidebar nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 0.35rem; }
+            main { width: 100%; margin: 0; padding: 1.5rem 1rem 3rem; }
+            .section-heading { margin-top: 2.3rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" aria-label="Navigace UOP">
+        <a class="brand" href="index.html">Software Book</a>
+        <p class="brand-note">Unix Operating Systems</p>
+        <a class="back-link" href="index.html">← Zpět na hlavní přehled</a>
+        <label class="search-label" for="searchInput">Hledat příkaz nebo téma</label>
+        <input id="searchInput" type="search" placeholder="Např. chmod, RAID, DNS…" autocomplete="off">
+        <p class="search-status" id="searchStatus" aria-live="polite"></p>
+        <nav>
+            <p class="nav-title">Předmět</p>
+            <ul>
+                <li><a href="#prehled">Přehled kurzu</a></li>
+                <li><a href="#zaklady">Shell a soubory</a></li>
+                <li><a href="#prava">Uživatelé a práva</a></li>
+                <li><a href="#procesy">Procesy a skripty</a></li>
+                <li><a href="#uloziste">Disky a souborové systémy</a></li>
+                <li><a href="#start">Start systému a systemd</a></li>
+                <li><a href="#software">Instalace softwaru</a></li>
+                <li><a href="#site">Sítě a firewall</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <header class="page-header">
+            <p class="eyebrow">Studijní tahák · Unix Operating Systems</p>
+            <h1>Linux v praxi, od shellu po správu systému.</h1>
+            <p class="intro">Stručné shrnutí témat UOP a přehled příkazů z přednáškových materiálů. Příkazy vyžadující oprávnění správce spouštěj jen tehdy, když rozumíš jejich dopadu.</p>
+            <nav class="quick-links" aria-label="Rychlé odkazy">
+                <a href="#zaklady">Základní příkazy</a>
+                <a href="#procesy">Bash a procesy</a>
+                <a href="#uloziste">Disky a LVM</a>
+                <a href="#start">systemd</a>
+                <a href="#software">APT a balíčky</a>
+                <a href="#site">IP a síť</a>
+            </nav>
+        </header>
+
+        <p class="empty-state" id="emptyState">Pro zadaný výraz se nenašla žádná odpovídající část.</p>
+
+        <header class="section-heading" id="prehled">
+            <h2>1. Přehled předmětu</h2>
+            <p>UOP propojuje každodenní práci v Linuxu se správou operačního systému.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Co kurz pokrývá</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Oblast</th><th>Hlavní témata</th></tr></thead>
+                    <tbody>
+                        <tr><td>Práce v Linuxu</td><td>Přihlášení, vzdálený přístup přes SSH, shell, soubory, oprávnění a uživatelé.</td></tr>
+                        <tr><td>Systém</td><td>Procesy, signály, skriptování, start a vypnutí systému, SysVinit a systemd.</td></tr>
+                        <tr><td>Úložiště</td><td>Disky, oddíly, RAID, LVM, souborové systémy, připojování, swap a šifrování.</td></tr>
+                        <tr><td>Software a sítě</td><td>Instalace balíčků i ze zdrojů, adresace IP, směrování, DNS a základy firewallu.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h4>Organizace a bezpečnost</h4>
+            <ul>
+                <li>Docházka je povinná; hodnocení vychází ze závěrečného testu.</li>
+                <li>Přístup na školní server k332 je přes osobní účet; SSH může vyžadovat školní VPN nebo port uvedený vyučujícím.</li>
+                <li>V laboratoři dodržuj bezpečnostní pravidla, poznej nouzové vypnutí, lékárničku, hasicí přístroj a evakuační cestu.</li>
+            </ul>
+            <div class="callout warning"><strong>Bezpečnost:</strong> Nepracuj běžně jako <code>root</code>. Před použitím <code>rm</code>, <code>mkfs</code>, <code>fdisk</code>, <code>dd</code>, změnou firewallu nebo úpravou <code>/etc/fstab</code> ověř zařízení, cíl i zálohu.</div>
+        </article>
+
+        <header class="section-heading" id="zaklady">
+            <h2>2. Shell a soubory</h2>
+            <p>Příkazy se skládají z názvu, voleb a argumentů. Nápovědu hledej v manuálových stránkách.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Základní příkazy</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Příkaz</th><th>Co dělá a příklad</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>pwd</code></td><td>Vypíše aktuální adresář.</td></tr>
+                        <tr><td><code>ls -lah</code></td><td>Vypíše obsah včetně skrytých souborů, detailů a čitelných velikostí.</td></tr>
+                        <tr><td><code>cd cesta</code></td><td>Změní adresář; <code>cd ..</code> o úroveň výš, <code>cd ~</code> domů, <code>cd -</code> zpět.</td></tr>
+                        <tr><td><code>mkdir -p cesta</code></td><td>Vytvoří adresář včetně chybějících nadřazených adresářů.</td></tr>
+                        <tr><td><code>touch soubor</code></td><td>Vytvoří prázdný soubor nebo aktualizuje čas změny.</td></tr>
+                        <tr><td><code>cp -r zdroj cíl</code></td><td>Zkopíruje soubor nebo adresář.</td></tr>
+                        <tr><td><code>mv zdroj cíl</code></td><td>Přesune nebo přejmenuje soubor.</td></tr>
+                        <tr><td><code>rm soubor</code></td><td>Smaže soubor; <code>rm -r adresář</code> maže rekurzivně. Obvykle není k dispozici undelete.</td></tr>
+                        <tr><td><code>cat soubor</code></td><td>Vypíše obsah; <code>less soubor</code> umožní procházení, ukončení klávesou <code>q</code>.</td></tr>
+                        <tr><td><code>file cesta</code></td><td>Rozpozná typ souboru.</td></tr>
+                        <tr><td><code>find cesta -name '*.log'</code></td><td>Vyhledá soubory podle názvu.</td></tr>
+                        <tr><td><code>grep -in 'text' soubor</code></td><td>Vyhledá řádky; <code>-i</code> ignoruje velikost písmen, <code>-n</code> vypíše čísla řádků.</td></tr>
+                        <tr><td><code>man příkaz</code></td><td>Otevře manuál; <code>příkaz --help</code> zobrazí stručnou nápovědu.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h4>Užitečné textové nástroje</h4>
+            <p><code>head</code> a <code>tail</code> zobrazí začátek a konec souboru; <code>tail -f</code> sleduje přibývající řádky. <code>sort</code> řadí, <code>uniq</code> odstraňuje sousední duplicity, <code>wc</code> počítá řádky/slova/znaky a <code>diff</code> porovnává soubory.</p>
+            <pre><code>grep -i 'error' app.log | sort | uniq
+find . -type f -name '*.conf'
+cat /etc/passwd | grep '^root:'</code></pre>
+            <div class="callout">Roura <code>|</code> předá standardní výstup jednoho programu na standardní vstup dalšího. Často je přehlednější vynechat zbytečné <code>cat</code>: <code>grep 'text' soubor | sort</code>.</div>
+        </article>
+
+        <header class="section-heading" id="prava">
+            <h2>3. Uživatelé a oprávnění</h2>
+            <p>Práva souboru jsou oddělená pro vlastníka, skupinu a ostatní.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Práva a účty</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Příkaz</th><th>Použití</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>whoami</code></td><td>Zobrazí aktuálního uživatele.</td></tr>
+                        <tr><td><code>id uživatel</code></td><td>Zobrazí UID, primární skupinu a další skupiny.</td></tr>
+                        <tr><td><code>groups</code></td><td>Vypíše skupiny aktuálního uživatele.</td></tr>
+                        <tr><td><code>chmod u+x skript.sh</code></td><td>Přidá vlastníkovi právo spouštění.</td></tr>
+                        <tr><td><code>chmod 640 soubor</code></td><td>Číselně nastaví práva: vlastník čtení/zápis, skupina čtení, ostatní bez práv.</td></tr>
+                        <tr><td><code>chown uživatel:skupina soubor</code></td><td>Změní vlastníka a skupinu; obvykle vyžaduje <code>sudo</code>.</td></tr>
+                        <tr><td><code>sudo příkaz</code></td><td>Spustí jeden příkaz s oprávněními správce.</td></tr>
+                        <tr><td><code>passwd</code></td><td>Změní heslo aktuálního účtu.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p><code>r</code> = čtení (4), <code>w</code> = zápis (2), <code>x</code> = spuštění/průchod (1). Hodnota <code>755</code> znamená vlastník <code>rwx</code>, skupina a ostatní <code>r-x</code>.</p>
+            <div class="callout warning">Přístup k adresáři vyžaduje právo <code>x</code>. Uživatelé / skupiny se spravují podle distribuce, například příkazy <code>adduser</code>, <code>usermod</code> a <code>groupadd</code>; prováděj je jen s potřebným oprávněním.</div>
+        </article>
+
+        <header class="section-heading" id="procesy">
+            <h2>4. Procesy, shell a skripty</h2>
+            <p>Shell spojuje příkazy, přesměrování a řízení běžících úloh.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Procesy a úlohy</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Příkaz / klávesa</th><th>Význam</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>ps aux</code></td><td>Momentální přehled procesů; <code>top</code> zobrazuje jejich stav průběžně.</td></tr>
+                        <tr><td><code>pgrep název</code></td><td>Najde PID podle názvu procesu.</td></tr>
+                        <tr><td><code>kill PID</code></td><td>Pošle procesu standardně SIGTERM (zdvořilý požadavek na ukončení).</td></tr>
+                        <tr><td><code>kill -9 PID</code></td><td>Pošle SIGKILL; proces ho nemůže zachytit. Použij až jako poslední možnost.</td></tr>
+                        <tr><td><code>jobs</code></td><td>Vypíše úlohy aktuálního shellu.</td></tr>
+                        <tr><td><code>příkaz &amp;</code></td><td>Spustí příkaz na pozadí.</td></tr>
+                        <tr><td><code>fg</code> / <code>bg</code></td><td>Vrátí úlohu do popředí / obnoví ji na pozadí.</td></tr>
+                        <tr><td><code>Ctrl+Z</code> / <code>Ctrl+C</code></td><td>Pozastaví úlohu / pošle přerušení úloze v popředí.</td></tr>
+                        <tr><td><code>echo $?</code></td><td>Vypíše návratový kód posledního příkazu; nula obvykle znamená úspěch.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h4>Vstup, výstup a řetězení</h4>
+            <pre><code>program &gt; vystup.txt       # přepíše výstupní soubor
+program &gt;&gt; vystup.txt      # připojí výstup na konec
+program &lt; vstup.txt        # načte vstup ze souboru
+program &gt;out.txt 2&gt;err.txt # oddělí běžný výstup a chyby
+program &gt;/dev/null 2&gt;&amp;1   # zahodí oba výstupy
+prikaz1 | prikaz2           # výstup prvního předá druhému
+prikaz | tee kopie.log     # zobrazí výstup a zároveň uloží kopii</code></pre>
+            <p><code>&amp;&amp;</code> spustí další příkaz jen při úspěchu předchozího; <code>||</code> při jeho neúspěchu.</p>
+            <h4>Proměnné a skripty Bash</h4>
+            <pre><code>#!/usr/bin/env bash
+printf 'Uživatel: %s\n' "$USER"
+for soubor in *.log; do
+  [ -e "$soubor" ] || continue
+  echo "$soubor"
+done</code></pre>
+            <p>Wildcardy: <code>*</code> odpovídá libovolnému počtu znaků, <code>?</code> právě jednomu znaku a <code>[abc]</code> jednomu vyjmenovanému znaku. Skript spusť například pomocí <code>chmod u+x skript.sh</code> a <code>./skript.sh</code>. Vždy cituj proměnné obsahující cesty: <code>"$soubor"</code>.</p>
+            <h4>Vzdálený přístup a terminál</h4>
+            <pre><code>ssh uzivatel@server
+ssh -p 8822 uzivatel@server
+ssh-keygen -R server</code></pre>
+            <p>SSH šifruje spojení. Změněný otisk serveru ověř jiným důvěryhodným kanálem, než starý záznam odstraníš. Pro odpojitelnou terminálovou relaci se používá <code>tmux</code> nebo <code>screen</code>.</p>
+        </article>
+
+        <header class="section-heading" id="uloziste">
+            <h2>5. Disky a souborové systémy</h2>
+            <p>Od zařízení a oddílů přes RAID/LVM až po připojený adresář.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Kontrola disků a místa</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Příkaz</th><th>Účel</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>lsblk -f</code></td><td>Vypíše zařízení, oddíly, typy FS, štítky a UUID.</td></tr>
+                        <tr><td><code>blkid</code></td><td>Zobrazí UUID a další vlastnosti blokových zařízení.</td></tr>
+                        <tr><td><code>df -h</code></td><td>Volné místo připojených souborových systémů.</td></tr>
+                        <tr><td><code>du -sh cesta</code></td><td>Souhrnná velikost adresáře.</td></tr>
+                        <tr><td><code>mount</code></td><td>Zobrazí připojené souborové systémy.</td></tr>
+                        <tr><td><code>findmnt</code></td><td>Přehledná hierarchie připojených souborových systémů.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <h4>Oddíly, souborové systémy a připojení</h4>
+            <ul>
+                <li><strong>GPT</strong> je moderní tabulka oddílů, která nahrazuje omezení MBR. Oddíly upravuj nástroji jako <code>fdisk</code>, <code>parted</code> nebo grafickým GParted.</li>
+                <li>Souborový systém vytváří například <code>mkfs.ext4 /dev/oddil</code>; kontrola/oprava se provádí nástrojem <code>fsck</code>, obvykle na odpojeném souborovém systému.</li>
+                <li>Připojení: <code>sudo mount /dev/oddil /mnt/data</code>; odpojení: <code>sudo umount /mnt/data</code>.</li>
+                <li>Trvalá konfigurace se zapisuje do <code>/etc/fstab</code>. Používej UUID nebo LABEL, protože názvy typu <code>/dev/sda</code> se mohou změnit.</li>
+            </ul>
+            <pre><code># Příklad fstab: UUID zjisti příkazem lsblk -f nebo blkid
+UUID=xxxx-xxxx  /mnt/data  ext4  defaults  0  2</code></pre>
+            <h4>RAID a LVM</h4>
+            <p>RAID kombinuje více zařízení pro výkon nebo odolnost vůči výpadku disku. RAID není záloha. LVM skládá PV (physical volume) do VG (volume group) a z nich vytváří LV (logical volume), které lze pružně měnit.</p>
+            <pre><code># Příklady pouze pro testovací virtuální disky
+sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdb /dev/sdc
+sudo pvcreate /dev/sdb1
+sudo vgcreate data_vg /dev/sdb1
+sudo lvcreate -L 10G -n data_lv data_vg</code></pre>
+            <h4>Odkazy, swap a síťová úložiště</h4>
+            <pre><code>ln puvodni.txt hardlink.txt
+ln -s /cesta/k/cili symlink
+swapon --show
+sudo mkswap /swapfile && sudo swapon /swapfile
+sshfs uzivatel@server:/data ~/remote-data</code></pre>
+            <p>Hard link odkazuje na stejná data na témže souborovém systému; symbolický odkaz uchovává cestu a může mířit i na adresář či jiný souborový systém. Síťové alternativy zahrnují NFS, SMB/Samba a SSHFS.</p>
+            <div class="callout danger"><span class="tag">Pozor, destruktivní</span><br><code>mkfs</code>, <code>mdadm --create</code>, <code>pvcreate</code> a zápisy do <code>/etc/fstab</code> mohou zničit data nebo zabránit startu systému. Zkoušej je pouze ve virtuálním prostředí s ověřenými zařízeními a zálohou.</div>
+        </article>
+
+        <header class="section-heading" id="start">
+            <h2>6. Start systému a systemd</h2>
+            <p>Bootloader zavede kernel; PID 1 dokončí start uživatelského prostoru a spravuje služby.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Od bootu ke službě</h3>
+            <p>Zjednodušeně: firmware (BIOS/UEFI) → bootloader (například GRUB) → kernel a initramfs → PID 1 → služby a přihlášení uživatelů.</p>
+            <p>SysVinit používá mimo jiné runlevely a skripty v <code>/etc/init.d</code>. V současných distribucích je běžný <strong>systemd</strong>; ekvivalentem cílového stavu je target. Starší příkazy <code>init</code>/<code>telinit</code> jsou závislé na distribuci.</p>
+            <h4>systemctl</h4>
+            <pre><code>systemctl status ssh
+sudo systemctl start ssh
+sudo systemctl stop ssh
+sudo systemctl restart ssh
+sudo systemctl enable --now ssh
+sudo systemctl disable ssh
+systemctl is-active ssh
+systemctl list-units --type=service
+systemctl list-unit-files --type=service</code></pre>
+            <p><code>start</code>/<code>stop</code> mění stav teď; <code>enable</code>/<code>disable</code> mění automatické spouštění při startu. <code>--now</code> současně službu spustí nebo zastaví.</p>
+            <h4>Logy, cíle a konfigurace</h4>
+            <pre><code>journalctl -b                 # logy aktuálního startu
+journalctl -u ssh -f          # průběžné logy služby
+journalctl -p err..alert      # chyby a závažnější události
+systemctl get-default         # výchozí target
+systemctl list-dependencies  # závislosti</code></pre>
+            <p>Vlastní jednotky se obvykle ukládají do <code>/etc/systemd/system/</code>. Po změně souboru jednotky načti konfiguraci přes <code>sudo systemctl daemon-reload</code>.</p>
+        </article>
+
+        <header class="section-heading" id="software">
+            <h2>7. Instalace softwaru</h2>
+            <p>Správce balíčků řeší instalaci, závislosti, aktualizace i odstranění.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>APT a dpkg (Debian/Ubuntu)</h3>
+            <pre><code>sudo apt update
+sudo apt upgrade
+sudo apt install balicek
+sudo apt remove balicek
+apt search vyraz
+dpkg -l | grep balicek
+dpkg -L balicek
+dpkg -S /cesta/k/souboru</code></pre>
+            <p><code>apt update</code> obnovuje seznamy balíčků, neinstaluje aktualizace. <code>apt upgrade</code> aktualizuje nainstalované balíčky. <code>dpkg</code> pracuje s lokální databází balíčků; závislosti za něj řeší APT.</p>
+            <h4>Další způsoby instalace</h4>
+            <ul>
+                <li><strong>Zdrojový kód:</strong> nejprve čti README/INSTALL a ověř závislosti; častý postup je <code>./configure</code>, <code>make</code>, instalace podle dokumentace. Neinstaluj bez rozmyslu jako root.</li>
+                <li><strong>Snap:</strong> <code>snap list</code>, <code>snap find název</code>, <code>sudo snap install balicek</code>, <code>sudo snap remove balicek</code>.</li>
+                <li><strong>Flatpak:</strong> <code>flatpak search název</code>, <code>flatpak install flathub ID</code>, <code>flatpak list</code>, <code>flatpak update</code>.</li>
+            </ul>
+            <div class="callout">Pro běžnou instalaci preferuj důvěryhodný repozitář distribuce. Balíčky z náhodných webů nebo příkazy stažené přímo do shellu mohou obejít aktualizace a bezpečnostní kontrolu.</div>
+        </article>
+
+        <header class="section-heading" id="site">
+            <h2>8. Sítě a diagnostika</h2>
+            <p>Moderní nástroj pro konfiguraci rozhraní a tras je příkaz <code>ip</code>.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Rozhraní, adresy, trasy a DNS</h3>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Příkaz</th><th>Účel / příklad</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>ip addr</code></td><td>Vypíše IP adresy síťových rozhraní.</td></tr>
+                        <tr><td><code>ip link</code></td><td>Vypíše stav rozhraní; <code>sudo ip link set eth0 up</code> rozhraní zapne.</td></tr>
+                        <tr><td><code>ip route</code></td><td>Zobrazí směrovací tabulku; <code>ip route get 1.1.1.1</code> ukáže vybranou trasu.</td></tr>
+                        <tr><td><code>ping -c 4 host</code></td><td>Ověří základní dosažitelnost přes ICMP.</td></tr>
+                        <tr><td><code>ss -tulpn</code></td><td>Zobrazí naslouchající TCP/UDP sockety a procesy.</td></tr>
+                        <tr><td><code>resolvectl status</code></td><td>Zobrazí stav DNS resolveru na systémech se systemd-resolved.</td></tr>
+                        <tr><td><code>tcpdump -i eth0</code></td><td>Zachytává síťový provoz; může vyžadovat oprávnění správce.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <pre><code>ip addr show
+ip route
+sudo ip addr add 192.168.10.20/24 dev eth0
+sudo ip route add 10.0.0.0/8 via 192.168.10.1</code></pre>
+            <p><code>ifconfig</code>, <code>route</code> a <code>netstat</code> jsou starší nástroje; jejich moderní alternativy jsou <code>ip</code> a <code>ss</code>. Konkrétní názvy rozhraní a správu sítě určuje distribuce.</p>
+            <h4>Firewall</h4>
+            <p>Linux používá pro filtrování paketů subsystém netfilter. <code>iptables</code> je stále možné potkat, ale současné systémy často používají <code>nftables</code> nebo nástroje jako UFW.</p>
+            <pre><code>sudo ufw status
+sudo ufw allow 22/tcp
+sudo ufw deny 22/tcp</code></pre>
+            <div class="callout danger">Změna firewallu přes SSH může okamžitě odříznout vzdálený přístup. Před změnou pravidel si připrav možnost lokální obnovy a povol správný port dřív, než nastavíš výchozí blokování.</div>
+        </article>
+
+        <footer>
+            Přehled vychází z dodaných materiálů k Unix Operating Systems (UOP). Některé příkazy a cesty se liší podle distribuce a verze systému; rozhodující je vždy aktuální manuál a dokumentace dané distribuce.
+        </footer>
+    </main>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchStatus = document.getElementById('searchStatus');
+        const emptyState = document.getElementById('emptyState');
+        const topics = [...document.querySelectorAll('[data-topic]')];
+
+        function filterContent() {
+            const query = searchInput.value.trim().toLocaleLowerCase('cs');
+            let visibleTopics = 0;
+            let visibleRows = 0;
+
+            topics.forEach(topic => {
+                const rows = [...topic.querySelectorAll('tbody tr')];
+                let topicMatches = !rows.length && topic.textContent.toLocaleLowerCase('cs').includes(query);
+
+                rows.forEach(row => {
+                    const matches = !query || row.textContent.toLocaleLowerCase('cs').includes(query);
+                    row.hidden = !matches;
+                    if (matches) {
+                        topicMatches = true;
+                        visibleRows += 1;
+                    }
+                });
+
+                if (query && topic.textContent.toLocaleLowerCase('cs').includes(query)) topicMatches = true;
+                topic.hidden = Boolean(query) && !topicMatches;
+                if (!topic.hidden) visibleTopics += 1;
+            });
+
+            document.querySelectorAll('.section-heading').forEach(heading => {
+                const topic = heading.nextElementSibling;
+                heading.hidden = Boolean(query) && (!topic || topic.hidden);
+            });
+
+            emptyState.style.display = query && !visibleTopics ? 'block' : 'none';
+            searchStatus.textContent = query ? `${visibleTopics} částí, ${visibleRows} řádků příkazů` : '';
+        }
+
+        searchInput.addEventListener('input', filterContent);
+    </script>
+</body>
+</html>
