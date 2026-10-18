@@ -246,6 +246,25 @@
             white-space: nowrap;
         }
 
+        .copy-emoji-button {
+            padding: 0.25rem 0.45rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        .copy-emoji-button:hover {
+            border-color: var(--accent-color);
+        }
+
+        .copy-status {
+            min-height: 1.4rem;
+            color: var(--accent-color);
+            font-size: 0.85rem;
+        }
+
         /* Úprava Prism.js */
         pre[class*="language-"] {
             border-radius: 8px;
@@ -437,28 +456,30 @@
             <table class="custom-table">
                 <thead>
                     <tr>
+                        <th>Emoji</th>
                         <th>Typ</th>
                         <th>SemVer</th>
                         <th>Popis</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td><code>feat</code></td><td>MINOR</td><td>Přidání nové funkcionality do aplikace.</td></tr>
-                    <tr><td><code>fix</code></td><td>PATCH</td><td>Oprava chyby / bugu v kódu.</td></tr>
-                    <tr><td><code>docs</code></td><td>-</td><td>Změny pouze v dokumentaci.</td></tr>
-                    <tr><td><code>style</code></td><td>-</td><td>Úpravy stylu kódu (středníky, mezery, bez změny logiky).</td></tr>
-                    <tr><td><code>refactor</code></td><td>-</td><td>Refaktoring kódu (ani bugfix, ani feat).</td></tr>
-                    <tr><td><code>perf</code></td><td>-</td><td>Změna kódu pro zvýšení výkonu.</td></tr>
-                    <tr><td><code>test</code></td><td>-</td><td>Přidání nebo oprava testů.</td></tr>
-                    <tr><td><code>build / ci</code></td><td>-</td><td>Změny v buildu, závislostech nebo CI/CD skriptech.</td></tr>
-                    <tr><td><code>chore</code></td><td>-</td><td>Ostatní úpravy neměnící produkční kód.</td></tr>
+                    <tr><td>✨ <button class="copy-emoji-button" type="button" data-copy-emoji="✨" aria-label="Kopírovat emoji ✨">Kopírovat</button></td><td><code>feat</code></td><td>MINOR</td><td>Přidání nové funkcionality do aplikace.</td></tr>
+                    <tr><td>🪲 <button class="copy-emoji-button" type="button" data-copy-emoji="🪲" aria-label="Kopírovat emoji 🪲">Kopírovat</button></td><td><code>fix</code></td><td>PATCH</td><td>Oprava chyby / bugu v kódu.</td></tr>
+                    <tr><td>🔧 <button class="copy-emoji-button" type="button" data-copy-emoji="🔧" aria-label="Kopírovat emoji 🔧">Kopírovat</button></td><td><code>chore</code></td><td>-</td><td>Běžná údržba, aktualizace verzí a konfigurace.</td></tr>
+                    <tr><td>📄 <button class="copy-emoji-button" type="button" data-copy-emoji="📄" aria-label="Kopírovat emoji 📄">Kopírovat</button></td><td><code>style</code></td><td>-</td><td>Úpravy stylu kódu (formátování bez změny logiky).</td></tr>
+                    <tr><td>🔨 <button class="copy-emoji-button" type="button" data-copy-emoji="🔨" aria-label="Kopírovat emoji 🔨">Kopírovat</button></td><td><code>refactor</code></td><td>-</td><td>Refaktoring kódu bez změny jeho chování.</td></tr>
+                    <tr><td>⚡ <button class="copy-emoji-button" type="button" data-copy-emoji="⚡" aria-label="Kopírovat emoji ⚡">Kopírovat</button></td><td><code>perf</code></td><td>-</td><td>Změny zlepšující výkon.</td></tr>
+                    <tr><td>☑️ <button class="copy-emoji-button" type="button" data-copy-emoji="☑️" aria-label="Kopírovat emoji ☑️">Kopírovat</button></td><td><code>test</code></td><td>-</td><td>Přidání nebo úprava testů.</td></tr>
+                    <tr><td>👷 <button class="copy-emoji-button" type="button" data-copy-emoji="👷" aria-label="Kopírovat emoji 👷">Kopírovat</button></td><td><code>build / ci</code></td><td>-</td><td>Změny v buildu, závislostech nebo CI/CD skriptech.</td></tr>
+                    <tr><td>📚 <button class="copy-emoji-button" type="button" data-copy-emoji="📚" aria-label="Kopírovat emoji 📚">Kopírovat</button></td><td><code>docs</code></td><td>-</td><td>Změny v dokumentaci.</td></tr>
                 </tbody>
             </table>
+            <p class="copy-status" aria-live="polite"></p>
 
             <p style="margin-top: 1rem;"><strong>Příklady:</strong></p>
-            <pre><code class="language-git">feat(auth): přidáno přihlášení přes Google
-fix(parser): oprava přetékání řetězce
-feat(api)!: změna struktury odpovědi (BREAKING CHANGE)</code></pre>
+            <pre><code class="language-git">✨ feat(auth): přidáno přihlášení přes Google
+🪲 fix(parser): oprava přetékání řetězce
+✨ feat(api)!: změna struktury odpovědi (BREAKING CHANGE)</code></pre>
         </article>
 
         <!-- SEKCIE: GOF DESIGN PATTERNS -->
@@ -799,6 +820,33 @@ Toggle.Button = function ToggleButton(props) {
         }
 
         document.getElementById('searchInput')?.addEventListener('input', filterNav);
+
+        document.getElementById('conventional-commits')?.addEventListener('click', async event => {
+            const button = event.target.closest('[data-copy-emoji]');
+            if (!button) return;
+
+            const emoji = button.dataset.copyEmoji;
+            const status = document.querySelector('#conventional-commits .copy-status');
+
+            try {
+                await navigator.clipboard.writeText(emoji);
+            } catch {
+                const field = document.createElement('textarea');
+                field.value = emoji;
+                field.style.position = 'fixed';
+                field.style.opacity = '0';
+                document.body.append(field);
+                field.select();
+                const copied = document.execCommand('copy');
+                field.remove();
+                if (!copied) {
+                    status.textContent = 'Kopírování se nepodařilo.';
+                    return;
+                }
+            }
+
+            status.textContent = `Zkopírováno: ${emoji}`;
+        });
     </script>
 </body>
 </html>
