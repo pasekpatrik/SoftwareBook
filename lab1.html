@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Příkazy krok za krokem k laboratorní úloze 1: Port Security, DHCP Snooping, DAI a IP Source Guard.">
+    <title>Úloha 1 · Port Security | Software Book</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --page: #101820;
+            --panel: #182630;
+            --panel-raised: #203440;
+            --text: #edf4f3;
+            --muted: #a4b6b8;
+            --line: #344a54;
+            --accent: #70d6bd;
+            --accent-strong: #b0f0dc;
+            --warning: #ffc36e;
+            --sidebar-width: 250px;
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background: var(--page); color: var(--text); font-family: Inter, "Segoe UI", sans-serif; line-height: 1.65; }
+        a { color: var(--accent-strong); text-underline-offset: 3px; }
+        a:hover { color: #fff; }
+        .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 2; display: flex; flex-direction: column; width: var(--sidebar-width); padding: 1.5rem 1rem; overflow-y: auto; background: #17252e; border-right: 1px solid var(--line); }
+        .brand { margin: 0; color: var(--accent); font-size: 1.1rem; font-weight: 750; text-decoration: none; }
+        .brand-note { margin: 0.15rem 0 1.2rem; color: var(--muted); font-size: 0.82rem; }
+        .back-link { margin-bottom: 0.65rem; font-size: 0.88rem; }
+        .nav-title { margin: 1rem 0 0.35rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.72rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+        .sidebar ul { margin: 0; padding: 0; list-style: none; }
+        .sidebar li { margin: 0.1rem 0; }
+        .sidebar nav a { display: block; padding: 0.3rem 0.45rem; border-radius: 4px; color: var(--muted); font-size: 0.84rem; text-decoration: none; }
+        .sidebar nav a:hover { background: var(--panel-raised); color: var(--text); }
+        main { width: min(100% - var(--sidebar-width), 1120px); margin-left: var(--sidebar-width); padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem) 5rem; }
+        .eyebrow { margin: 0 0 0.6rem; color: var(--accent); font-size: 0.78rem; font-weight: 750; letter-spacing: 0.09em; text-transform: uppercase; }
+        .page-header { padding-bottom: 2rem; border-bottom: 1px solid var(--line); }
+        h1 { max-width: 780px; margin: 0; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.12; }
+        .intro { max-width: 760px; margin: 1rem 0 0; color: var(--muted); font-size: 1.05rem; }
+        .quick-links { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 1.4rem; }
+        .quick-links a { padding: 0.35rem 0.7rem; border: 1px solid var(--line); border-radius: 5px; color: var(--text); font-size: 0.84rem; text-decoration: none; }
+        .quick-links a:hover { border-color: var(--accent); color: var(--accent-strong); }
+        .section-heading { margin: 3rem 0 1.2rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); scroll-margin-top: 1.25rem; }
+        .section-heading h2 { margin: 0; color: var(--accent); font-size: 1.75rem; line-height: 1.25; }
+        .section-heading p { margin: 0.35rem 0 0; color: var(--muted); }
+        .topic { margin: 1.1rem 0; padding: 1.25rem clamp(1rem, 3vw, 1.65rem); border: 1px solid var(--line); border-radius: 6px; background: var(--panel); scroll-margin-top: 1rem; }
+        .topic h3 { margin: 0 0 0.55rem; font-size: 1.2rem; }
+        .topic h4 { margin: 1.15rem 0 0.35rem; color: var(--accent-strong); font-size: 1rem; }
+        .topic p { margin: 0.5rem 0; color: var(--muted); }
+        .topic ol, .topic ul { padding-left: 1.35rem; }
+        .topic li { margin: 0.2rem 0; }
+        .topic code, .callout code { color: var(--accent-strong); }
+        .callout { margin: 0.8rem 0; padding: 0.75rem 0.9rem; border-left: 3px solid var(--accent); background: var(--panel-raised); color: var(--muted); }
+        .callout.warning { border-color: var(--warning); }
+        .command-list { display: grid; gap: 0.65rem; margin-top: 1rem; }
+        .command-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.15rem 1rem; align-items: center; padding: 0.7rem 0.8rem; border: 1px solid var(--line); border-radius: 5px; background: #101a20; }
+        .command-row code { overflow-wrap: anywhere; color: var(--text); font: 0.95rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .command-row p { grid-column: 1 / -1; margin: 0.2rem 0 0; font-size: 0.88rem; }
+        .copy-button { min-width: 92px; padding: 0.45rem 0.65rem; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-raised); color: var(--text); font: inherit; font-size: 0.82rem; cursor: pointer; }
+        .copy-button:hover { border-color: var(--accent); color: var(--accent-strong); }
+        .copy-status { min-height: 1.5rem; margin: 0.35rem 0 0; color: var(--accent-strong); font-size: 0.82rem; }
+        .tag { color: var(--warning); font-size: 0.75rem; font-weight: 750; text-transform: uppercase; }
+        footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+        @media (max-width: 800px) {
+            .sidebar { position: sticky; inset: 0 0 auto; width: 100%; max-height: 42vh; padding: 0.8rem 1rem; border-right: 0; border-bottom: 1px solid var(--line); }
+            .brand-note { display: none; }
+            .nav-title { margin-top: 0.55rem; }
+            .sidebar nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 0.35rem; }
+            main { width: 100%; margin: 0; padding: 1.5rem 1rem 3rem; }
+            .section-heading { margin-top: 2.3rem; }
+        }
+        @media (max-width: 480px) { .command-row { grid-template-columns: minmax(0, 1fr); } .copy-button { justify-self: start; } }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" aria-label="Navigace úlohy">
+        <a class="brand" href="index.html">Software Book</a>
+        <p class="brand-note">Kryptografie a bezpečnost</p>
+        <a class="back-link" href="lab.html">← Přehled laboratorních příkazů</a>
+        <a class="back-link" href="index.html">Hlavní přehled</a>
+        <nav>
+            <p class="nav-title">Úloha 1 · Port Security</p>
+            <ul>
+                <li><a href="#router-dhcp">3. Router a DHCP</a></li>
+                <li><a href="#klienti">4. DHCP klienti</a></li>
+                <li><a href="#port-static">5–6. Pevná MAC</a></li>
+                <li><a href="#port-sticky">7. Sticky MAC</a></li>
+                <li><a href="#rogue-dhcp">8–10. Podvržený DHCP</a></li>
+                <li><a href="#snooping">11–12. DHCP Snooping</a></li>
+                <li><a href="#dai-source">13–14. DAI a Source Guard</a></li>
+                <li><a href="#obnova">15. Obnovení pracoviště</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <header class="page-header">
+            <p class="eyebrow">Kryptografie a síťová bezpečnost · B0M32KSB</p>
+            <h1>Úloha 1: Zabezpečení přepínače</h1>
+            <p class="intro">Příkazy a ověření pro Port Security, DHCP Snooping, Dynamic ARP Inspection a IP Source Guard. Jednotlivé příkazy kopíruj do správného zařízení a režimu.</p>
+            <nav class="quick-links" aria-label="Rychlé odkazy">
+                <a href="#router-dhcp">Router a DHCP</a>
+                <a href="#port-static">Port Security</a>
+                <a href="#snooping">DHCP Snooping</a>
+                <a href="#dai-source">DAI a Source Guard</a>
+                <a href="#obnova">Obnova</a>
+            </nav>
+        </header>
+
+        <div class="callout warning"><strong>Topologie:</strong> router R1 je na portu Fa0/1 switche; PC-vlevo na Fa0/4 a PC-vpravo se podle kroku přepojuje mezi Fa0/6 a Fa0/5. Router používá <code>192.168.66.254/24</code>, VLAN je 1. Před konfigurací si ověř fyzické zapojení.</div>
+
+        <header class="section-heading" id="router-dhcp">
+            <h2>3. Router R1: rozhraní a DHCP server</h2>
+            <p>Na routeru nakonfiguruj Fa0/1 a DHCP pool pro síť 192.168.66.0/24.</p>
+        </header>
+        <article class="topic">
+            <h3>Konfigurace routeru</h3>
+            <div class="command-list">
+                <div class="command-row"><code>enable</code><button class="copy-button" type="button">Kopírovat</button><p>Přejde do privilegovaného režimu routeru <code>R1#</code>.</p></div>
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfigurační režim.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere port routeru připojený do switche.</p></div>
+                <div class="command-row"><code>ip address 192.168.66.254 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví router na adresu 192.168.66.254/24.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne rozhraní Fa0/1.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí se do globální konfigurace routeru.</p></div>
+                <div class="command-row"><code>ip dhcp excluded-address 192.168.66.254</code><button class="copy-button" type="button">Kopírovat</button><p>Vyloučí adresu routeru z DHCP rozsahu.</p></div>
+                <div class="command-row"><code>ip dhcp pool VLAN_1</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří DHCP pool pro laboratorní síť.</p></div>
+                <div class="command-row"><code>network 192.168.66.0 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví síť a masku DHCP poolu.</p></div>
+                <div class="command-row"><code>default-router 192.168.66.254</code><button class="copy-button" type="button">Kopírovat</button><p>Předá klientům adresu routeru jako výchozí bránu.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci a vrátí prompt na <code>R1#</code>.</p></div>
+                <div class="command-row"><code>show ip dhcp binding</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří přidělené DHCP adresy.</p></div>
+                <div class="command-row"><code>show ip interface brief</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří IP adresu a stav rozhraní Fa0/1.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <header class="section-heading" id="klienti">
+            <h2>4. Obnovení adres na počítačích</h2>
+            <p>Na obou počítačích obnov DHCP lease přes síťové rozhraní NIC2; v Linuxu ověř adresu a trasu.</p>
+        </header>
+        <article class="topic">
+            <h3>Linux: NIC2 (v zadání typicky enp4s0)</h3>
+            <div class="command-list">
+                <div class="command-row"><code>ip a</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí síťová rozhraní a jejich adresy; ověř název NIC2.</p></div>
+                <div class="command-row"><code>sudo dhclient -r enp4s0</code><button class="copy-button" type="button">Kopírovat</button><p>Uvolní stávající DHCP lease na NIC2.</p></div>
+                <div class="command-row"><code>sudo dhclient enp4s0</code><button class="copy-button" type="button">Kopírovat</button><p>Vyžádá novou adresu z DHCP serveru. Název rozhraní uprav podle výstupu <code>ip a</code>.</p></div>
+                <div class="command-row"><code>ip r</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří výchozí trasu a gateway přidělenou DHCP serverem.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout">Krok 4 můžeš na pracovních stanicích provést také odpojením a opětovným připojením NIC2, jak uvádí zadání.</div>
+        </article>
+
+        <header class="section-heading" id="port-static">
+            <h2>5–6. Fa0/6: povolená pevná MAC adresa</h2>
+            <p>Povol na portu Fa0/6 pouze MAC 00:01:02:03:04:05 a při porušení pravidla port vypni.</p>
+        </header>
+        <article class="topic">
+            <h3>Konfigurace na switchi SW4</h3>
+            <div class="command-list">
+                <div class="command-row"><code>enable</code><button class="copy-button" type="button">Kopírovat</button><p>Přejde do privilegovaného režimu switche.</p></div>
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfiguraci.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/6</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere port, na který se v kroku 6 připojí PC-vpravo.</p></div>
+                <div class="command-row"><code>switchport mode access</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví port jako access port.</p></div>
+                <div class="command-row"><code>switchport access vlan 1</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí port do VLAN 1.</p></div>
+                <div class="command-row"><code>switchport port-security</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne Port Security na portu.</p></div>
+                <div class="command-row"><code>switchport port-security maximum 1</code><button class="copy-button" type="button">Kopírovat</button><p>Povolí na portu jednu MAC adresu.</p></div>
+                <div class="command-row"><code>switchport port-security mac-address 0001.0203.0405</code><button class="copy-button" type="button">Kopírovat</button><p>Ručně povolí MAC adresu 00:01:02:03:04:05 ve formátu Cisco.</p></div>
+                <div class="command-row"><code>switchport port-security violation shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Při jiné MAC adrese přepne port do stavu err-disabled.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci.</p></div>
+                <div class="command-row"><code>show port-security interface FastEthernet 0/6</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří nastavení a stav Port Security na Fa0/6.</p></div>
+                <div class="command-row"><code>show interfaces status</code><button class="copy-button" type="button">Kopírovat</button><p>Po připojení PC ověří, zda se port kvůli porušení pravidla vypnul.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">Po připojení PC-vpravo zkus ping na PC-vlevo. Jestli se skutečná MAC PC-vpravo neshoduje s povolenou adresou, očekávej porušení pravidla a vypnutí Fa0/6.</div>
+        </article>
+
+        <header class="section-heading" id="port-sticky">
+            <h2>7. Fa0/5: dynamické učení MAC (sticky)</h2>
+            <p>Přesuň PC-vpravo na Fa0/5. Switch se naučí první MAC adresu a další zařízení odmítne.</p>
+        </header>
+        <article class="topic">
+            <h3>Konfigurace a ověření na switchi</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Vstoupí do globální konfigurace.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/5</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere port pro PC-vpravo.</p></div>
+                <div class="command-row"><code>switchport mode access</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví port jako access.</p></div>
+                <div class="command-row"><code>switchport access vlan 1</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí port do VLAN 1.</p></div>
+                <div class="command-row"><code>switchport port-security</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne Port Security.</p></div>
+                <div class="command-row"><code>switchport port-security maximum 1</code><button class="copy-button" type="button">Kopírovat</button><p>Povolí jedinou naučenou MAC adresu.</p></div>
+                <div class="command-row"><code>switchport port-security mac-address sticky</code><button class="copy-button" type="button">Kopírovat</button><p>Dynamicky naučenou MAC uloží jako sticky adresu v běžící konfiguraci.</p></div>
+                <div class="command-row"><code>switchport port-security violation shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Při připojení jiné MAC port vypne.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci.</p></div>
+                <div class="command-row"><code>show port-security interface FastEthernet 0/5</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří naučenou MAC, počet porušení a stav portu.</p></div>
+                <div class="command-row"><code>show running-config interface FastEthernet 0/5</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí konfiguraci portu včetně případné sticky MAC adresy.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <header class="section-heading" id="rogue-dhcp">
+            <h2>8–10. Podvržený DHCP server na PC-vpravo</h2>
+            <p>Odpoj router a na PC-vpravo nastav DHCP server v laboratorním Webminu. Následující nastavení je v grafickém rozhraní, nejde o příkazy Cisco.</p>
+        </header>
+        <article class="topic">
+            <h3>Webmin: konfigurace DHCP serveru</h3>
+            <ol>
+                <li>Otevři <a href="http://127.0.0.1:10000">http://127.0.0.1:10000</a> a přihlas se laboratorním účtem podle pokynů cvičícího.</li>
+                <li>V konfiguraci DHCP odstraň původní subnet a založ nový subnet s popisem <code>Attacker Subnet</code>.</li>
+                <li>Nastav Network Address <code>192.168.66.0</code>, Netmask <code>255.255.255.0</code> a Address Range podle zadání. Počáteční adresu uprav podle skutečného rozsahu a adresy PC-vpravo.</li>
+                <li>V Client Options nastav Default Routers na aktuální IP adresu PC-vpravo.</li>
+                <li>Vyber rozhraní NIC2 (v zadání <code>enp4s0</code>), ulož změny a DHCP službu aktivuj.</li>
+                <li>Na PC-vlevo obnov DHCP lease. Potom ověř, že klient dostal adresu z neautorizovaného serveru.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>sudo dhclient -r enp4s0</code><button class="copy-button" type="button">Kopírovat</button><p>Na PC-vlevo uvolní aktuální lease NIC2 před testem podvrženého serveru.</p></div>
+                <div class="command-row"><code>sudo dhclient enp4s0</code><button class="copy-button" type="button">Kopírovat</button><p>Na PC-vlevo požádá o novou adresu; tento test proveď pouze podle kroku 10 zadání.</p></div>
+                <div class="command-row"><code>ip a</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří přidělenou adresu na NIC2.</p></div>
+                <div class="command-row"><code>ip r</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří, jakou výchozí bránu klient obdržel.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><strong>Pozor:</strong> Router je v kroku 8 odpojený, takže DHCP Snooping ještě nemůže ověřit autorizovaný server. PC-vlevo obnov adresu přesně podle instrukcí a potom vrať router do topologie.</div>
+        </article>
+
+        <header class="section-heading" id="snooping">
+            <h2>11–12. DHCP Snooping</h2>
+            <p>Zapni Snooping pro VLAN 1, důvěřuj pouze portu k routeru a omez příchozí DHCP pakety na 50 za sekundu.</p>
+        </header>
+        <article class="topic">
+            <h3>Konfigurace na switchi SW4</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfiguraci switche.</p></div>
+                <div class="command-row"><code>ip dhcp snooping</code><button class="copy-button" type="button">Kopírovat</button><p>Globálně zapne DHCP Snooping.</p></div>
+                <div class="command-row"><code>no ip dhcp snooping information option</code><button class="copy-button" type="button">Kopírovat</button><p>Vypne vkládání Option 82, které může být nekompatibilní s laboratorním DHCP serverem.</p></div>
+                <div class="command-row"><code>ip dhcp snooping vlan 1</code><button class="copy-button" type="button">Kopírovat</button><p>Aktivuje DHCP Snooping ve VLAN 1.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere port switche propojený s R1. Pokud topologie používá jiný port, uprav číslo.</p></div>
+                <div class="command-row"><code>ip dhcp snooping trust</code><button class="copy-button" type="button">Kopírovat</button><p>Povolí DHCP odpovědi přicházející z legitimního routeru.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí se do globální konfigurace switche.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/4</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere nedůvěryhodný klientský port PC-vlevo.</p></div>
+                <div class="command-row"><code>ip dhcp snooping limit rate 50</code><button class="copy-button" type="button">Kopírovat</button><p>Omezí DHCP pakety od klienta na 50 za sekundu, aby nezahltil DHCP server.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí se do globální konfigurace switche.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/5</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere nedůvěryhodný klientský port PC-vpravo.</p></div>
+                <div class="command-row"><code>ip dhcp snooping limit rate 50</code><button class="copy-button" type="button">Kopírovat</button><p>Omezí DHCP pakety od PC-vpravo na 50 za sekundu.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci.</p></div>
+                <div class="command-row"><code>show ip dhcp snooping</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří aktivní VLAN, stav Snooping a důvěryhodné porty.</p></div>
+                <div class="command-row"><code>show ip dhcp snooping binding</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí naučené vazby MAC, IP, VLAN a portu.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">Důvěryhodný je pouze uplink k routeru. Rate limit je nastavený na klientských access portech Fa0/4 a Fa0/5, kde omezuje DHCP provoz od koncových stanic.</div>
+            <h3 style="margin-top: 1.5rem">Obnovení a ověření autorizovaného DHCP</h3>
+            <p>Zapoj router zpět, na PC-vlevo obnov lease NIC2 a porovnej přidělenou adresu a čas s DHCP bindingem na routeru.</p>
+            <div class="command-list">
+                <div class="command-row"><code>sudo dhclient -r enp4s0</code><button class="copy-button" type="button">Kopírovat</button><p>Uvolní předchozí adresu na PC-vlevo.</p></div>
+                <div class="command-row"><code>sudo dhclient enp4s0</code><button class="copy-button" type="button">Kopírovat</button><p>Vyžádá lease znovu; legitimní odpověď má přijít z důvěryhodného portu routeru.</p></div>
+                <div class="command-row"><code>show ip dhcp binding</code><button class="copy-button" type="button">Kopírovat</button><p>Na R1 porovná přidělenou IP a čas lease.</p></div>
+                <div class="command-row"><code>show ip dhcp snooping binding</code><button class="copy-button" type="button">Kopírovat</button><p>Na SW4 ověří záznam klienta v binding databázi.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <header class="section-heading" id="dai-source">
+            <h2>13–14. DAI a IP Source Guard</h2>
+            <p>Zapni kontrolu ARP ve VLAN 1, důvěřuj uplinku k routeru a kontrolu zdrojové IP nastav na klientském portu.</p>
+        </header>
+        <article class="topic">
+            <h3>Ochrana na switchi SW4</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfiguraci switche.</p></div>
+                <div class="command-row"><code>ip arp inspection vlan 1</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne Dynamic ARP Inspection pro VLAN 1; ověř, že DHCP Snooping vytvořil bindingy.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere uplink switche k routeru.</p></div>
+                <div class="command-row"><code>ip arp inspection trust</code><button class="copy-button" type="button">Kopírovat</button><p>Označí uplink jako důvěryhodný pro DAI.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí se do globální konfigurace.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/5</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere klientský port PC-vpravo. Uprav port, pokud je PC připojeno jinam.</p></div>
+                <div class="command-row"><code>ip verify source port-security</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne IP Source Guard s kontrolou zdrojové IP a MAC podle DHCP binding databáze a Port Security.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci.</p></div>
+                <div class="command-row"><code>show ip arp inspection vlan 1</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří stav DAI ve VLAN 1.</p></div>
+                <div class="command-row"><code>show ip verify source</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří IP Source Guard a bindingy na klientských portech.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <h3 style="margin-top: 1.5rem">Test statické nepovolené adresy</h3>
+            <ol>
+                <li>Na PC-vpravo nastav na NIC2 statickou adresu <code>192.168.66.66/24</code> podle nastavení operačního systému.</li>
+                <li>Z PC-vpravo pingni PC-vlevo a sleduj počítadla nebo logy switche.</li>
+                <li>Porovnej zdrojovou IP/MAC s DHCP Snooping bindingem. IP Source Guard může provoz s adresou, kterou binding nepovoluje, zahodit.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>show ip dhcp snooping binding</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří legitimní DHCP vazbu před testem statické adresy.</p></div>
+                <div class="command-row"><code>show ip arp inspection statistics</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí DAI statistiky a případné zahozené ARP pakety, pokud příkaz daná verze IOS podporuje.</p></div>
+                <div class="command-row"><code>show port-security interface FastEthernet 0/5</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří stav portu, naučenou MAC a případná porušení Port Security.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">IP Source Guard závisí na DHCP Snooping bindingu. Pokud testovanému PC nastavíš statickou adresu, která v databázi není, očekávaný výsledek je blokace provozu; port se nemusí přepnout do err-disabled.</div>
+        </article>
+
+        <header class="section-heading" id="obnova">
+            <h2>15. Obnovení původního stavu</h2>
+            <p>Restartuj router, switch i počítače. Změněnou konfiguraci na Cisco zařízeních neukládej.</p>
+        </header>
+        <article class="topic">
+            <h3>Router R1 a switch SW4</h3>
+            <div class="command-list">
+                <div class="command-row"><code>reload</code><button class="copy-button" type="button">Kopírovat</button><p>Zadej samostatně v privilegovaném režimu routeru a poté switche. Na dotaz k uložení konfigurace odpověz <code>no</code>.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><strong>Neukládej změny:</strong> při dotazu „Save? [yes/no]“ zvol <code>no</code>. Potom restartuj oba počítače a vrať kabeláž do původního stavu.</div>
+        </article>
+
+        <footer>
+            Příkazy vycházejí z dodaného zadání úlohy 1. Názvy portů, NIC2 a dostupnost některých příkazů ověř podle konkrétního IOS a zapojení pracoviště.
+        </footer>
+    </main>
+    <script>
+        document.querySelectorAll('.copy-button').forEach(button => {
+            button.addEventListener('click', async () => {
+                const command = button.parentElement.querySelector('code').textContent.trim();
+                const status = button.closest('.topic').querySelector('.copy-status');
+
+                try {
+                    await navigator.clipboard.writeText(command);
+                } catch {
+                    const field = document.createElement('textarea');
+                    field.value = command;
+                    field.style.position = 'fixed';
+                    field.style.opacity = '0';
+                    document.body.append(field);
+                    field.select();
+                    const copied = document.execCommand('copy');
+                    field.remove();
+                    if (!copied) {
+                        status.textContent = 'Kopírování se nepodařilo. Označ příkaz a zkopíruj ho ručně.';
+                        return;
+                    }
+                }
+
+                status.textContent = `Zkopírováno: ${command}`;
+                button.textContent = 'Zkopírováno';
+                window.setTimeout(() => { button.textContent = 'Kopírovat'; }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>
