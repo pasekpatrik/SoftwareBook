@@ -98,6 +98,10 @@
         .topic ul, .topic ol { padding-left: 1.35rem; }
         .topic li { margin: 0.2rem 0; }
         .topic code, .callout code { color: var(--accent-strong); }
+        .table-wrap { overflow-x: auto; }
+        .reference-table { width: 100%; margin: 0.75rem 0; border-collapse: collapse; font-size: 0.88rem; }
+        .reference-table th, .reference-table td { padding: 0.58rem 0.65rem; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+        .reference-table th { color: var(--accent-strong); }
         .callout { margin: 0.8rem 0; padding: 0.75rem 0.9rem; border-left: 3px solid var(--accent); background: var(--panel-raised); color: var(--muted); }
         .callout.warning { border-color: var(--warning); }
         .tag { color: var(--warning); font-size: 0.75rem; font-weight: 750; text-transform: uppercase; }
@@ -145,6 +149,11 @@
                 <li><a href="#router">Router Cisco</a></li>
                 <li><a href="#overeni">Ověření spojení</a></li>
                 <li><a href="#wireshark">Wireshark</a></li>
+                <li><a href="#switch-vlan">VLAN na switchi</a></li>
+                <li><a href="#router-vlan">Router a RIP</a></li>
+                <li><a href="#dhcp">DHCP</a></li>
+                <li><a href="#nat">NAT a default route</a></li>
+                <li><a href="#subnetting">Podsítě a masky</a></li>
             </ul>
         </nav>
     </aside>
@@ -153,12 +162,17 @@
         <header class="page-header">
             <p class="eyebrow">Kryptografie a bezpečnost · laboratorní cvičení</p>
             <h1>Příkazy pro praktickou ukázku v laboratoři</h1>
-            <p class="intro">Konfigurace rozhraní routeru Cisco, nastavení adresy PC a ověření spojení pomocí PING a Wiresharku. Každý příkaz lze zkopírovat samostatně.</p>
+            <p class="intro">Praktické příkazy Cisco IOS od základní konfigurace přes VLAN, směrování, DHCP a NAT až po výpočty podsítí. Každý příkaz lze zkopírovat samostatně.</p>
             <nav class="quick-links" aria-label="Rychlé odkazy">
                 <a href="#priprava">Připojení</a>
                 <a href="#router">Konfigurace routeru</a>
                 <a href="#overeni">PING a kontrola</a>
                 <a href="#wireshark">Wireshark</a>
+                <a href="#switch-vlan">VLAN</a>
+                <a href="#router-vlan">Směrování</a>
+                <a href="#dhcp">DHCP</a>
+                <a href="#nat">NAT</a>
+                <a href="#subnetting">Podsítě</a>
             </nav>
         </header>
 
@@ -239,8 +253,159 @@
             <p class="copy-status" aria-live="polite"></p>
         </article>
 
+        <header class="section-heading" id="switch-vlan">
+            <h2>5. VLAN na přepínači</h2>
+            <p>Vytvoř VLAN, přiřaď access port nebo nastav trunk mezi síťovými prvky.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Vytvoření a pojmenování VLAN</h3>
+            <div class="command-list">
+                <div class="command-row"><code>vlan 10</code><button class="copy-button" type="button">Kopírovat</button><p>V globálním konfiguračním režimu vytvoří VLAN s ID 10 a přejde do její konfigurace.</p></div>
+                <div class="command-row"><code>name VLAN10</code><button class="copy-button" type="button">Kopírovat</button><p>Pojmenuje právě vybranou VLAN. Název je popisek, síťové ID zůstává 10.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfigurační režim a vrátí prompt do privilegovaného režimu.</p></div>
+                <div class="command-row"><code>show vlan</code><button class="copy-button" type="button">Kopírovat</button><p>Vypíše VLAN a jejich přiřazené access porty; ověř, že VLAN 10 existuje.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">Access port</h3>
+            <div class="command-list">
+                <div class="command-row"><code>interface FastEthernet 0/10</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere port Fa0/10, který bude připojený ke koncovému zařízení.</p></div>
+                <div class="command-row"><code>switchport mode access</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví port jako access port pro jednu VLAN.</p></div>
+                <div class="command-row"><code>switchport access vlan 10</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí port Fa0/10 do VLAN 10. VLAN musí být na switchi vytvořená.</p></div>
+                <div class="command-row"><code>show vlan</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří členství portu ve VLAN.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">Trunk port</h3>
+            <div class="command-list">
+                <div class="command-row"><code>interface FastEthernet 0/10</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere port, který propojuje síťové prvky a přenáší provoz více VLAN.</p></div>
+                <div class="command-row"><code>switchport trunk encapsulation dot1q</code><button class="copy-button" type="button">Kopírovat</button><p>Na zařízeních s volitelnou enkapsulací nastaví 802.1Q. Zadej pouze tam, kde je příkaz podporovaný; některé switche používají 802.1Q pevně a tento příkaz nemají.</p></div>
+                <div class="command-row"><code>switchport mode trunk</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví port jako trunk, který přenáší rámce více VLAN s tagem 802.1Q.</p></div>
+                <div class="command-row"><code>show interfaces trunk</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří aktivní trunky a VLAN povolené na trunku.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">Číslo portu a podporu příkazu pro enkapsulaci ověř podle modelu switche a pokynů cvičícího.</div>
+        </article>
+
+        <header class="section-heading" id="router-vlan">
+            <h2>6. Rozhraní routeru, subinterface a RIP</h2>
+            <p>Fyzické rozhraní obslouží jednu síť; subinterface s 802.1Q umožňují směrovat mezi VLAN.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Fyzické rozhraní a gateway</h3>
+            <div class="command-list">
+                <div class="command-row"><code>interface FastEthernet 0/0</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere fyzický port Fa0/0. Uprav název podle skutečného zařízení a zapojení.</p></div>
+                <div class="command-row"><code>ip address 192.168.1.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví routeru adresu, kterou klienti této sítě obvykle používají jako výchozí bránu.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Administrativně zapne fyzické rozhraní.</p></div>
+                <div class="command-row"><code>show ip interface brief</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří adresu a stav rozhraní. Pro funkční linku očekávej stav up/up.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">Subinterface pro VLAN 10 (router-on-a-stick)</h3>
+            <div class="command-list">
+                <div class="command-row"><code>interface FastEthernet 0/1.10</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří logické subinterface .10 na fyzickém portu Fa0/1.</p></div>
+                <div class="command-row"><code>encapsulation dot1Q 10</code><button class="copy-button" type="button">Kopírovat</button><p>Naváže subinterface na rámce označené VLAN ID 10. Port switch–router musí být trunk.</p></div>
+                <div class="command-row"><code>ip address 192.168.10.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví IP adresu subinterface, která bude výchozí bránou VLAN 10.</p></div>
+                <div class="command-row"><code>show ip interface brief</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří, že subinterface má očekávanou adresu. Její provoz závisí také na aktivním fyzickém portu.</p></div>
+            </div>
+            <div class="callout">Subinterface se aktivuje přes nadřazené fyzické rozhraní. Příkaz <code>no shutdown</code> zadávej na fyzickém portu, ne jako náhradu jeho aktivace na subinterface.</div>
+            <h3 style="margin-top: 1.5rem">RIPv2</h3>
+            <div class="command-list">
+                <div class="command-row"><code>router rip</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře konfiguraci směrovacího protokolu RIP.</p></div>
+                <div class="command-row"><code>version 2</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne RIPv2, který podporuje přenos masky podsítě.</p></div>
+                <div class="command-row"><code>network 192.168.1.0</code><button class="copy-button" type="button">Kopírovat</button><p>Aktivuje RIP na lokálně připojené síti 192.168.1.0/24. Zadej síťovou adresu, nikoli adresu gateway.</p></div>
+                <div class="command-row"><code>no auto-summary</code><button class="copy-button" type="button">Kopírovat</button><p>Vypne automatické sumarizování na hranicích třídních sítí; užitečné při VLSM nebo nesouvislých podsítích.</p></div>
+                <div class="command-row"><code>show ip route</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří směrovací tabulku; RIP naučené trasy jsou označené písmenem R.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <header class="section-heading" id="dhcp">
+            <h2>7. DHCP server na routeru</h2>
+            <p>Vyluč statické adresy, definuj adresní rozsah a předávej klientům gateway a DNS.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Pool pro síť 192.168.1.0/24</h3>
+            <div class="command-list">
+                <div class="command-row"><code>ip dhcp excluded-address 192.168.1.1 192.168.1.10</code><button class="copy-button" type="button">Kopírovat</button><p>Vyloučí adresy .1 až .10 z přidělování, například pro gateway a zařízení se statickou adresou.</p></div>
+                <div class="command-row"><code>ip dhcp pool LAN</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří DHCP pool s názvem LAN a přejde do jeho konfigurace.</p></div>
+                <div class="command-row"><code>network 192.168.1.0 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Určí síť a masku, ze kterých se budou klientům přidělovat adresy.</p></div>
+                <div class="command-row"><code>default-router 192.168.1.1</code><button class="copy-button" type="button">Kopírovat</button><p>Předá klientům výchozí bránu.</p></div>
+                <div class="command-row"><code>dns-server 8.8.8.8</code><button class="copy-button" type="button">Kopírovat</button><p>Předá klientům adresu DNS resolveru. V laboratoři použij DNS určené zadáním.</p></div>
+                <div class="command-row"><code>show ip dhcp binding</code><button class="copy-button" type="button">Kopírovat</button><p>V privilegovaném režimu zobrazí přidělené DHCP adresy a jejich klienty.</p></div>
+                <div class="command-row"><code>show ip dhcp pool</code><button class="copy-button" type="button">Kopírovat</button><p>Vypíše pooly a souhrn jejich dostupných a využitých adres.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">Rozsah i adresu výchozí brány přizpůsob konkrétní síti. Nezahrnuj do dynamického poolu gateway ani staticky adresovaná zařízení.</div>
+        </article>
+
+        <header class="section-heading" id="nat">
+            <h2>8. NAT/PAT a výchozí trasa</h2>
+            <p>Označ vnitřní a vnější rozhraní, vyber překládané adresy ACL a nastav cestu do WAN.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Označení LAN a WAN rozhraní</h3>
+            <p>Příklady níže jsou alternativní topologie. Na routeru označ jako inside stranu LAN a jako outside rozhraní směřující do WAN.</p>
+            <div class="command-list">
+                <div class="command-row"><code>interface FastEthernet 0/0</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere příklad fyzického LAN rozhraní.</p></div>
+                <div class="command-row"><code>ip address 192.168.1.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí LAN rozhraní adresu sítě 192.168.1.0/24.</p></div>
+                <div class="command-row"><code>ip nat inside</code><button class="copy-button" type="button">Kopírovat</button><p>Označí vybrané rozhraní jako vnitřní stranu NAT.</p></div>
+                <div class="command-row"><code>interface FastEthernet 0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere příklad fyzického WAN rozhraní.</p></div>
+                <div class="command-row"><code>ip address 200.0.0.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Příklad statické WAN adresy; použij adresu přidělenou poskytovatelem nebo zadáním.</p></div>
+                <div class="command-row"><code>ip nat outside</code><button class="copy-button" type="button">Kopírovat</button><p>Označí WAN rozhraní jako vnější stranu NAT.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne fyzické rozhraní. Pro subinterface musí být aktivní jeho nadřazený port.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">LAN subinterface pro VLAN 10</h3>
+            <div class="command-list">
+                <div class="command-row"><code>interface FastEthernet 0/1.10</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere logické rozhraní pro VLAN 10 na fyzickém portu Fa0/1.</p></div>
+                <div class="command-row"><code>encapsulation dot1Q 10</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí subinterface značku 802.1Q pro VLAN 10.</p></div>
+                <div class="command-row"><code>ip address 192.168.10.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví adresu gateway VLAN 10.</p></div>
+                <div class="command-row"><code>ip nat inside</code><button class="copy-button" type="button">Kopírovat</button><p>Označí LAN subinterface jako vnitřní stranu NAT.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">WAN subinterface pro VLAN 70</h3>
+            <div class="command-list">
+                <div class="command-row"><code>interface FastEthernet 0/0.70</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere logické rozhraní pro WAN VLAN 70 na fyzickém portu Fa0/0.</p></div>
+                <div class="command-row"><code>encapsulation dot1Q 70</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí subinterface značku 802.1Q pro VLAN 70.</p></div>
+                <div class="command-row"><code>ip address dhcp</code><button class="copy-button" type="button">Kopírovat</button><p>Získá WAN adresu automaticky přes DHCP; jde o alternativu ke statické WAN konfiguraci výše.</p></div>
+                <div class="command-row"><code>ip nat outside</code><button class="copy-button" type="button">Kopírovat</button><p>Označí WAN subinterface jako vnější stranu NAT.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">ACL a PAT overload</h3>
+            <div class="command-list">
+                <div class="command-row"><code>access-list 10 permit 192.168.1.0 0.0.0.255</code><button class="copy-button" type="button">Kopírovat</button><p>ACL vybere adresy z LAN 192.168.1.0/24 pro překlad. Wildcard maska je převrácená maska /24.</p></div>
+                <div class="command-row"><code>ip nat inside source list 10 interface FastEthernet 0/1 overload</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne PAT: více vnitřních adres sdílí adresu WAN rozhraní. Nahraď Fa0/1 skutečným vnějším rozhraním; pro WAN subinterface zadej její název.</p></div>
+                <div class="command-row"><code>show ip nat translations</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí aktivní překlady NAT.</p></div>
+                <div class="command-row"><code>show ip nat statistics</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí počitadla a stav NAT rozhraní.</p></div>
+                <div class="command-row"><code>show access-lists 10</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří ACL 10 a počet odpovídajících paketů.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">Defaultní routa</h3>
+            <div class="command-list">
+                <div class="command-row"><code>ip route 0.0.0.0 0.0.0.0 81.92.87.1</code><button class="copy-button" type="button">Kopírovat</button><p>Nasměruje neznámé cílové sítě na next-hop 81.92.87.1. Nahraď jej skutečnou adresou WAN brány.</p></div>
+                <div class="command-row"><code>show ip route</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří výchozí trasu, která se obvykle zobrazuje jako 0.0.0.0/0 nebo označení S*.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">Statickou WAN konfiguraci, WAN přes DHCP a trunkovaný WAN subinterface nekombinuj bez ověření topologie. NAT potřebuje funkční směrování a správně označené inside/outside rozhraní.</div>
+        </article>
+
+        <header class="section-heading" id="subnetting">
+            <h2>9. Přehled IPv4 prefixů</h2>
+            <p>Rychlá reference masky, velikosti bloku, použitelných adres a rozsahu v posledním oktetu pro běžné sítě /24 až /30.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Masky a rozsahy adres</h3>
+            <div class="table-wrap">
+                <table class="reference-table">
+                    <thead><tr><th>Prefix</th><th>Maska</th><th>Adres celkem</th><th>Použitelných IP</th><th>Velikost bloku</th><th>Síť (příklad)</th><th>První host</th><th>Poslední host</th><th>Broadcast</th><th>Typické použití</th></tr></thead>
+                    <tbody>
+                        <tr><td>/30</td><td>255.255.255.252</td><td>4</td><td>2</td><td>4</td><td>X.X.X.0</td><td>X.X.X.1</td><td>X.X.X.2</td><td>X.X.X.3</td><td>WAN point-to-point</td></tr>
+                        <tr><td>/29</td><td>255.255.255.248</td><td>8</td><td>6</td><td>8</td><td>X.X.X.0</td><td>X.X.X.1</td><td>X.X.X.6</td><td>X.X.X.7</td><td>DMZ, malé segmenty</td></tr>
+                        <tr><td>/28</td><td>255.255.255.240</td><td>16</td><td>14</td><td>16</td><td>X.X.X.0</td><td>X.X.X.1</td><td>X.X.X.14</td><td>X.X.X.15</td><td>Menší LAN, servery</td></tr>
+                        <tr><td>/27</td><td>255.255.255.224</td><td>32</td><td>30</td><td>32</td><td>X.X.X.0</td><td>X.X.X.1</td><td>X.X.X.30</td><td>X.X.X.31</td><td>Menší firmy</td></tr>
+                        <tr><td>/26</td><td>255.255.255.192</td><td>64</td><td>62</td><td>64</td><td>X.X.X.0</td><td>X.X.X.1</td><td>X.X.X.62</td><td>X.X.X.63</td><td>Střední LAN</td></tr>
+                        <tr><td>/25</td><td>255.255.255.128</td><td>128</td><td>126</td><td>128</td><td>X.X.X.0</td><td>X.X.X.1</td><td>X.X.X.126</td><td>X.X.X.127</td><td>Velká LAN</td></tr>
+                        <tr><td>/24</td><td>255.255.255.0</td><td>256</td><td>254</td><td>256</td><td>X.X.X.0</td><td>X.X.X.1</td><td>X.X.X.254</td><td>X.X.X.255</td><td>Standardní LAN</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p>V příkladech tabulky je síť v posledním oktetu zarovnaná na 0. U jiné síťové adresy se hranice podsítě a broadcast počítají podle velikosti bloku.</p>
+            <div class="callout">Počet použitelných adres je u běžných IPv4 podsítí počet všech adres minus síťová a broadcast adresa. Výjimky jako /31 pro point-to-point se používají podle podpory zařízení a návrhu sítě.</div>
+        </article>
+
         <footer>
-            Postup vychází z materiálů k předmětu Kryptografie a bezpečnost, praktická ukázka práce v laboratoři. Konkrétní porty a zapojení vždy ověř podle pokynů cvičícího.
+            Příručka vychází z dodaných poznámek a materiálů k předmětu Kryptografie a bezpečnost. Příklady adres a portů uprav podle skutečné topologie a pokynů cvičícího.
         </footer>
     </main>
 
