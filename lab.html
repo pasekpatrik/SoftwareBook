@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cisco IOS příkazy a postup pro praktickou ukázku síťové laboratoře: konfigurace routeru, ping a Wireshark.">
+    <title>Laboratorní příkazy | Software Book</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --page: #101820;
+            --panel: #182630;
+            --panel-raised: #203440;
+            --text: #edf4f3;
+            --muted: #a4b6b8;
+            --line: #344a54;
+            --accent: #70d6bd;
+            --accent-strong: #b0f0dc;
+            --warning: #ffc36e;
+            --sidebar-width: 250px;
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            background: var(--page);
+            color: var(--text);
+            font-family: Inter, "Segoe UI", sans-serif;
+            line-height: 1.65;
+        }
+
+        a { color: var(--accent-strong); text-underline-offset: 3px; }
+        a:hover { color: #fff; }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            width: var(--sidebar-width);
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+            background: #17252e;
+            border-right: 1px solid var(--line);
+        }
+
+        .brand { margin: 0; color: var(--accent); font-size: 1.1rem; font-weight: 750; text-decoration: none; }
+        .brand-note { margin: 0.15rem 0 1.2rem; color: var(--muted); font-size: 0.82rem; }
+        .back-link { margin-bottom: 0.65rem; font-size: 0.88rem; }
+        .search-label { display: block; margin: 1rem 0 0.35rem; color: var(--muted); font-size: 0.78rem; font-weight: 700; }
+
+        #searchInput {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            background: var(--page);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.9rem;
+        }
+
+        #searchInput:focus-visible, a:focus-visible, button:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        .search-status { min-height: 1.4rem; margin: 0.35rem 0 0.8rem; color: var(--muted); font-size: 0.76rem; }
+        .nav-title { margin: 1rem 0 0.35rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.72rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+        .sidebar ul { margin: 0; padding: 0; list-style: none; }
+        .sidebar li { margin: 0.1rem 0; }
+        .sidebar nav a { display: block; padding: 0.3rem 0.45rem; border-radius: 4px; color: var(--muted); font-size: 0.84rem; text-decoration: none; }
+        .sidebar nav a:hover { background: var(--panel-raised); color: var(--text); }
+
+        main {
+            width: min(100% - var(--sidebar-width), 1120px);
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem clamp(1.25rem, 4vw, 3.5rem) 5rem;
+        }
+
+        .eyebrow { margin: 0 0 0.6rem; color: var(--accent); font-size: 0.78rem; font-weight: 750; letter-spacing: 0.09em; text-transform: uppercase; }
+        .page-header { padding-bottom: 2rem; border-bottom: 1px solid var(--line); }
+        h1 { max-width: 780px; margin: 0; font-size: clamp(2rem, 4vw, 3.5rem); line-height: 1.12; }
+        .intro { max-width: 760px; margin: 1rem 0 0; color: var(--muted); font-size: 1.05rem; }
+        .quick-links { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 1.4rem; }
+        .quick-links a { padding: 0.35rem 0.7rem; border: 1px solid var(--line); border-radius: 5px; color: var(--text); font-size: 0.84rem; text-decoration: none; }
+        .quick-links a:hover { border-color: var(--accent); color: var(--accent-strong); }
+        .section-heading { margin: 3rem 0 1.2rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); scroll-margin-top: 1.25rem; }
+        .section-heading h2 { margin: 0; color: var(--accent); font-size: 1.75rem; line-height: 1.25; }
+        .section-heading p { margin: 0.35rem 0 0; color: var(--muted); }
+        .topic { margin: 1.1rem 0; padding: 1.25rem clamp(1rem, 3vw, 1.65rem); border: 1px solid var(--line); border-radius: 6px; background: var(--panel); scroll-margin-top: 1rem; }
+        .topic h3 { margin: 0 0 0.55rem; font-size: 1.2rem; }
+        .topic h4 { margin: 1.15rem 0 0.35rem; color: var(--accent-strong); font-size: 1rem; }
+        .topic p { margin: 0.5rem 0; color: var(--muted); }
+        .topic ul, .topic ol { padding-left: 1.35rem; }
+        .topic li { margin: 0.2rem 0; }
+        .topic code, .callout code { color: var(--accent-strong); }
+        .callout { margin: 0.8rem 0; padding: 0.75rem 0.9rem; border-left: 3px solid var(--accent); background: var(--panel-raised); color: var(--muted); }
+        .callout.warning { border-color: var(--warning); }
+        .tag { color: var(--warning); font-size: 0.75rem; font-weight: 750; text-transform: uppercase; }
+
+        .command-list { display: grid; gap: 0.65rem; margin-top: 1rem; }
+        .command-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.15rem 1rem; align-items: center; padding: 0.7rem 0.8rem; border: 1px solid var(--line); border-radius: 5px; background: #101a20; }
+        .command-row code { overflow-wrap: anywhere; color: var(--text); font: 0.95rem/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
+        .command-row p { grid-column: 1 / -1; margin: 0.2rem 0 0; font-size: 0.88rem; }
+        .copy-button { min-width: 92px; padding: 0.45rem 0.65rem; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-raised); color: var(--text); font: inherit; font-size: 0.82rem; cursor: pointer; }
+        .copy-button:hover { border-color: var(--accent); color: var(--accent-strong); }
+        .copy-status { min-height: 1.5rem; margin: 0.35rem 0 0; color: var(--accent-strong); font-size: 0.82rem; }
+        .empty-state { display: none; margin: 1rem 0; color: var(--muted); }
+        footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+
+        @media (max-width: 800px) {
+            .sidebar { position: sticky; inset: 0 0 auto; width: 100%; max-height: 42vh; padding: 0.8rem 1rem; border-right: 0; border-bottom: 1px solid var(--line); }
+            .brand-note { display: none; }
+            .nav-title { margin-top: 0.55rem; }
+            .sidebar nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 0.35rem; }
+            main { width: 100%; margin: 0; padding: 1.5rem 1rem 3rem; }
+            .section-heading { margin-top: 2.3rem; }
+        }
+
+        @media (max-width: 480px) {
+            .command-row { grid-template-columns: minmax(0, 1fr); }
+            .copy-button { justify-self: start; }
+        }
+
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar" aria-label="Navigace laboratorní úlohy">
+        <a class="brand" href="index.html">Software Book</a>
+        <p class="brand-note">Kryptografie a bezpečnost</p>
+        <a class="back-link" href="index.html">← Hlavní přehled</a>
+        <a class="back-link" href="uop.html">Unix Operating Systems →</a>
+        <label class="search-label" for="searchInput">Hledat příkaz nebo téma</label>
+        <input id="searchInput" type="search" placeholder="Např. ping, interface…" autocomplete="off">
+        <p class="search-status" id="searchStatus" aria-live="polite"></p>
+        <nav>
+            <p class="nav-title">Praktická ukázka</p>
+            <ul>
+                <li><a href="#priprava">Připojení a adresy</a></li>
+                <li><a href="#router">Router Cisco</a></li>
+                <li><a href="#overeni">Ověření spojení</a></li>
+                <li><a href="#wireshark">Wireshark</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <header class="page-header">
+            <p class="eyebrow">Kryptografie a bezpečnost · laboratorní cvičení</p>
+            <h1>Příkazy pro praktickou ukázku v laboratoři</h1>
+            <p class="intro">Konfigurace rozhraní routeru Cisco, nastavení adresy PC a ověření spojení pomocí PING a Wiresharku. Každý příkaz lze zkopírovat samostatně.</p>
+            <nav class="quick-links" aria-label="Rychlé odkazy">
+                <a href="#priprava">Připojení</a>
+                <a href="#router">Konfigurace routeru</a>
+                <a href="#overeni">PING a kontrola</a>
+                <a href="#wireshark">Wireshark</a>
+            </nav>
+        </header>
+
+        <p class="empty-state" id="emptyState">Pro zadaný výraz se nenašla odpovídající část.</p>
+
+        <header class="section-heading" id="priprava">
+            <h2>1. Připojení a adresy</h2>
+            <p>Nejdřív zapoj konzoli routeru a síťové rozhraní PC podle pokynů vyučujícího.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Zapojení pracoviště</h3>
+            <ol>
+                <li>Připoj konzolový port routeru R1 (pracoviště u okna), případně R2 (u dveří), k PC přes patch panel.</li>
+                <li>V PuTTY zvol správný sériový port COM a otevři konzolové spojení.</li>
+                <li>Propoj rozhraní <code>NIC2</code> počítače s portem <code>FastEthernet 0/1</code> routeru kříženým UTP kabelem.</li>
+                <li>Ve vlastnostech IPv4 síťového adaptéru <code>NIC2</code> nastav adresu <code>172.20.30.200</code> a masku <code>255.255.255.0</code>. Nezaměň ho s <code>NIC1</code> připojeným do fakultní sítě.</li>
+            </ol>
+            <div class="callout warning"><strong>Pozor:</strong> IP adresu nastav jen na určeném laboratorním rozhraní <code>NIC2</code>. Dodrž pokyny cvičícího a neměň konfiguraci ostatních prvků topologie.</div>
+        </article>
+
+        <header class="section-heading" id="router">
+            <h2>2. Konfigurace routeru Cisco</h2>
+            <p>Příkazy zadávej postupně do konzole. Prompt ukazuje, v jakém režimu router právě je.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Vstup do konfigurace</h3>
+            <div class="command-list">
+                <div class="command-row"><code>enable</code><button class="copy-button" type="button">Kopírovat</button><p>Přepne z uživatelského režimu <code>Router&gt;</code> do privilegovaného režimu <code>Router#</code>.</p></div>
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfigurační režim. Prompt se změní na <code>Router(config)#</code>.</p></div>
+                <div class="command-row"><code>hostname XYZ</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví název routeru na <code>XYZ</code>; dosaďte označení podle pokynů cvičícího.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">Nastavení rozhraní FastEthernet 0/1</h3>
+            <div class="command-list">
+                <div class="command-row"><code>interface FastEthernet 0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Přejde do konfigurace fyzického portu <code>Fa0/1</code>. Na některých zařízeních se může typ rozhraní lišit.</p></div>
+                <div class="command-row"><code>ip address 172.20.30.100 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví routeru adresu <code>172.20.30.100/24</code>, tedy adresu ve stejné síti jako PC.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Administrativně zapne rozhraní. Fyzické porty Cisco bývají před konfigurací vypnuté.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí se z režimu konfigurace rozhraní do globální konfigurace.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <header class="section-heading" id="overeni">
+            <h2>3. Ověření spojení a konfigurace</h2>
+            <p>Router i PC musí být ve stejné podsíti; úspěšný ping potvrdí základní konektivitu.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Ověření z routeru</h3>
+            <div class="command-list">
+                <div class="command-row"><code>ping 172.20.30.200</code><button class="copy-button" type="button">Kopírovat</button><p>Odešle ICMP Echo Request z routeru na PC. Úspěšné odpovědi potvrzují dostupnost počítače.</p></div>
+                <div class="command-row"><code>show running-config</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí aktuální konfiguraci uloženou v RAM. Laboratorní změny se tímto příkazem neukládají do startovní konfigurace.</p></div>
+                <div class="command-row"><code>show ip interface brief</code><button class="copy-button" type="button">Kopírovat</button><p>Stručně vypíše IP adresy a stav rozhraní. U <code>Fa0/1</code> ověř adresu a stav <code>up/up</code>.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">Ověření z Windows</h3>
+            <div class="command-list">
+                <div class="command-row"><code>ping 172.20.30.100</code><button class="copy-button" type="button">Kopírovat</button><p>Spusť v příkazovém řádku Windows. Odešle ping na adresu routeru. Pokud příkaz selže, zkontroluj kabel, zvolený adaptér a IP adresy.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><span class="tag">Pravidlo laboratoře</span><br>Neukládej laboratorní konfiguraci do <code>STARTUP-CONFIG</code>. Nepoužívej příkaz <code>copy running-config startup-config</code>.</div>
+        </article>
+
+        <header class="section-heading" id="wireshark">
+            <h2>4. Zachycení paketů ve Wiresharku</h2>
+            <p>Prohlédni si ICMP komunikaci, kterou právě vytváří příkaz PING.</p>
+        </header>
+        <article class="topic" data-topic>
+            <h3>Postup analýzy</h3>
+            <ol>
+                <li>Spusť Wireshark a začni zachytávat na rozhraní <code>NIC2</code>.</li>
+                <li>Do pole zobrazovacího filtru zadej <code>icmp</code> a potvrď filtr.</li>
+                <li>Zopakuj ping z PC na router. Ve výpisu najdi zprávy <code>Echo (ping) request</code> a <code>Echo (ping) reply</code>.</li>
+                <li>Vyber odpověď <code>Echo reply</code> a zjisti délku paketu ve sloupci <strong>Length</strong> nebo v detailu rámce.</li>
+                <li>Pro filtrování podle adresy PC použij například <code>ip.addr == 172.20.30.200</code>.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>icmp</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazovací filtr Wiresharku pro zprávy protokolu ICMP.</p></div>
+                <div class="command-row"><code>ip.addr == 172.20.30.200</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí pakety, ve kterých je tato IP adresa zdrojem nebo cílem.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <footer>
+            Postup vychází z materiálů k předmětu Kryptografie a bezpečnost, praktická ukázka práce v laboratoři. Konkrétní porty a zapojení vždy ověř podle pokynů cvičícího.
+        </footer>
+    </main>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchStatus = document.getElementById('searchStatus');
+        const emptyState = document.getElementById('emptyState');
+        const topics = [...document.querySelectorAll('[data-topic]')];
+
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.trim().toLocaleLowerCase('cs');
+            let visible = 0;
+
+            topics.forEach(topic => {
+                topic.hidden = Boolean(query) && !topic.textContent.toLocaleLowerCase('cs').includes(query);
+                visible += Number(!topic.hidden);
+            });
+
+            document.querySelectorAll('.section-heading').forEach(heading => {
+                heading.hidden = Boolean(query) && (!heading.nextElementSibling || heading.nextElementSibling.hidden);
+            });
+
+            emptyState.style.display = query && !visible ? 'block' : 'none';
+            searchStatus.textContent = query ? `${visible} odpovídajících částí` : '';
+        });
+
+        document.querySelectorAll('.copy-button').forEach(button => {
+            button.addEventListener('click', async () => {
+                const command = button.parentElement.querySelector('code').textContent.trim();
+                const status = button.closest('.topic').querySelector('.copy-status');
+
+                try {
+                    await navigator.clipboard.writeText(command);
+                } catch {
+                    const field = document.createElement('textarea');
+                    field.value = command;
+                    field.style.position = 'fixed';
+                    field.style.opacity = '0';
+                    document.body.append(field);
+                    field.select();
+                    const copied = document.execCommand('copy');
+                    field.remove();
+                    if (!copied) {
+                        status.textContent = 'Kopírování se nepodařilo. Označ příkaz a zkopíruj ho ručně.';
+                        return;
+                    }
+                }
+
+                status.textContent = `Zkopírováno: ${command}`;
+                button.textContent = 'Zkopírováno';
+                window.setTimeout(() => { button.textContent = 'Kopírovat'; }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>
