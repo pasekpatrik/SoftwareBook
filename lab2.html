@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Příprava k laboratorní úloze 2: konfigurace site-to-site IPsec VPN na Cisco routerech, ověření a analýza provozu.">
+    <title>Úloha 2 · IPsec VPN | Software Book</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <aside class="sidebar" aria-label="Navigace úlohy">
+        <a class="brand" href="index.html">Software Book</a>
+        <p class="brand-note">Kryptografie a bezpečnost</p>
+        <a class="back-link" href="lab.html">← Přehled laboratorních příkazů</a>
+        <a class="back-link" href="lab1.html">Úloha 1 · Zabezpečení přepínače</a>
+        <nav>
+            <p class="nav-title">Úloha 2 · IPsec VPN</p>
+            <ul>
+                <li><a href="#topologie">Topologie a adresy</a></li>
+                <li><a href="#priprava">Připojení zařízení</a></li>
+                <li><a href="#zaklad">Základní konfigurace</a></li>
+                <li><a href="#trasy">Statické trasy</a></li>
+                <li><a href="#ftp">Nešifrovaný FTP</a></li>
+                <li><a href="#vpn-r1">IPsec na R1</a></li>
+                <li><a href="#vpn-r2">IPsec na R2</a></li>
+                <li><a href="#overeni">Ověření VPN</a></li>
+                <li><a href="#obnova">Obnovení pracoviště</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <header class="page-header">
+            <p class="eyebrow">Kryptografie a síťová bezpečnost · B0M32KSB</p>
+            <h1>Úloha 2: Virtuální privátní sítě pomocí IPsec</h1>
+            <p class="intro">Příprava podle laboratorního zadání: nakonfiguruj dvě podsítě, ověř běžný provoz, vytvoř site-to-site IPsec VPN a porovnej zachycený FTP provoz před a po šifrování.</p>
+            <p><a href="docs/lab2.pdf" target="_blank" rel="noopener">Otevřít původní zadání (PDF)</a></p>
+            <nav class="quick-links" aria-label="Rychlé odkazy">
+                <a href="#topologie">Adresy</a>
+                <a href="#zaklad">Routery</a>
+                <a href="#trasy">Statické trasy</a>
+                <a href="#ftp">FTP a Wireshark</a>
+                <a href="#vpn-r1">IPsec</a>
+                <a href="#overeni">Ověření</a>
+                <a href="#obnova">Obnova</a>
+            </nav>
+        </header>
+
+        <div class="callout warning"><strong>Hodnoty odpovídají schématu v zadání.</strong> LAN vlevo je <code>192.168.1.0/24</code>, LAN vpravo <code>192.168.2.0/24</code> a společná WAN síť přes HUB je <code>192.168.0.0/24</code>. Příkazy pro R1 a R2 jsou zrcadlové; pozor na obrácené adresy peeru a ACL.</div>
+
+        <header class="section-heading" id="topologie">
+            <h2>Adresní plán topologie</h2>
+            <p>Nejdřív si ujasni, která adresa patří do LAN a která do společné WAN sítě přes rozbočovač.</p>
+        </header>
+        <article class="topic">
+            <div class="table-wrap"><table>
+                <thead><tr><th>Zařízení / rozhraní</th><th>Adresa</th><th>Účel</th></tr></thead>
+                <tbody>
+                    <tr><td>PC-vlevo · NIC1</td><td><code>192.168.1.10/24</code></td><td>Klient levé LAN</td></tr>
+                    <tr><td>R1 · FastEthernet0/1</td><td><code>192.168.1.1/24</code></td><td>Výchozí brána levé LAN</td></tr>
+                    <tr><td>R1 · FastEthernet0/0</td><td><code>192.168.0.1/24</code></td><td>WAN rozhraní k HUBu</td></tr>
+                    <tr><td>R2 · FastEthernet0/0</td><td><code>192.168.0.2/24</code></td><td>WAN rozhraní k HUBu</td></tr>
+                    <tr><td>R2 · FastEthernet0/1</td><td><code>192.168.2.1/24</code></td><td>Výchozí brána pravé LAN</td></tr>
+                    <tr><td>PC-vpravo · NIC2</td><td><code>192.168.2.10/24</code></td><td>Klient pravé LAN</td></tr>
+                </tbody>
+            </table></div>
+            <div class="callout">Maska <code>/24</code> odpovídá <code>255.255.255.0</code>. Schéma uvádí PC-vlevo adresu <code>192.168.1.10/24</code>, ale text zadání říká, že ji na PC-vlevo není nutné nastavovat; použij NIC1 a ponech jeho předpřipravené nastavení. Na PC-vpravo nastav <code>192.168.2.10/24</code> a gateway <code>192.168.2.1</code>. Wireshark zachytává na <code>enp0s31f6</code>.</div>
+        </article>
+
+        <header class="section-heading" id="priprava">
+            <h2>1–2. Zapojení a konzole</h2>
+            <p>Připrav HUB, routery a dvě PC podle obrázku topologie v PDF.</p>
+        </header>
+        <article class="topic">
+            <ol>
+                <li>Propoj R1 a R2 přes HUB přímými kabely. PC připoj k HUBu také přímým kabelem podle schématu.</li>
+                <li>Na PC-vlevo použij NIC1 a v Wiresharku rozhraní <code>enp0s31f6</code>. Na PC-vpravo použij NIC2.</li>
+                <li>V PuTTY otevři konzolové spojení s R1 i R2. Příkazy označené R1 zadávej pouze na R1 a příkazy R2 pouze na R2.</li>
+            </ol>
+            <div class="callout warning">Na PC-vlevo podle zadání IP adresu nenastavuj, použij NIC1. Na PC-vpravo nastav hodnoty podle adresního plánu a použij NIC2. Pokud se výchozí konfigurace PC-vlevo liší od adresy v topologii, ověř ji u cvičícího před změnou.</div>
+        </article>
+
+        <header class="section-heading" id="zaklad">
+            <h2>3. Základní konfigurace routerů</h2>
+            <p>Nastav názvy, vypni zdržující DNS lookup a zapni synchronní výpis konzolových zpráv.</p>
+        </header>
+        <article class="topic">
+            <h3>Na obou routerech</h3>
+            <div class="command-list">
+                <div class="command-row"><code>enable</code><button class="copy-button" type="button">Kopírovat</button><p>Přejde do privilegovaného režimu, ve kterém se zobrazují příkazy <code>show</code> a konfigurace se zahajuje.</p></div>
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfigurační režim.</p></div>
+                <div class="command-row"><code>hostname R1</code><button class="copy-button" type="button">Kopírovat</button><p>Na prvním routeru nastav název R1. Na druhém použij <code>hostname R2</code>, aby se zařízení nepletla.</p></div>
+                <div class="command-row"><code>no ip domain-lookup</code><button class="copy-button" type="button">Kopírovat</button><p>Vypne pokus routeru překládat překlepy jako doménová jména; konzole pak po chybně zadaném příkazu nečeká.</p></div>
+                <div class="command-row"><code>line console 0</code><button class="copy-button" type="button">Kopírovat</button><p>Přejde do nastavení konzolové linky.</p></div>
+                <div class="command-row"><code>logging synchronous</code><button class="copy-button" type="button">Kopírovat</button><p>Udržuje rozepsaný příkaz na řádku při výpisu systémových zpráv.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci a vrátí prompt do privilegovaného režimu.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout">Po zadání <code>hostname R1</code> nebo <code>hostname R2</code> se změní prompt, podle kterého poznáš, na kterém routeru právě pracuješ.</div>
+        </article>
+
+        <header class="section-heading" id="trasy">
+            <h2>4. IPv4 adresy a statické trasy</h2>
+            <p>Nejdřív nakonfiguruj obě rozhraní každého routeru, potom trasu do vzdálené LAN. Tento checkpoint musí fungovat ještě bez IPsec.</p>
+        </header>
+        <article class="topic">
+            <h3>R1 · LAN a WAN rozhraní</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Začni globální konfiguraci R1.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere rozhraní R1 připojené k levé LAN.</p></div>
+                <div class="command-row"><code>ip address 192.168.1.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví gateway pro PC-vlevo.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Administrativně zapne rozhraní.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/0</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere WAN rozhraní R1, které vede k HUBu.</p></div>
+                <div class="command-row"><code>ip address 192.168.0.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví adresu R1 ve společné WAN síti.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne WAN rozhraní R1.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí prompt do privilegovaného režimu.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">R2 · LAN a WAN rozhraní</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Začni globální konfiguraci R2.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere rozhraní R2 připojené k pravé LAN.</p></div>
+                <div class="command-row"><code>ip address 192.168.2.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví gateway pro PC-vpravo.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne LAN rozhraní R2.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/0</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere WAN rozhraní R2, které vede k HUBu.</p></div>
+                <div class="command-row"><code>ip address 192.168.0.2 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví adresu R2 ve společné WAN síti.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne WAN rozhraní R2.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí prompt do privilegovaného režimu.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">Statické trasy · R1 i R2</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfiguraci; následující příkaz na každém routeru uprav podle popisu.</p></div>
+                <div class="command-row"><code>ip route 192.168.2.0 255.255.255.0 192.168.0.2</code><button class="copy-button" type="button">Kopírovat</button><p>Na R1 přidá cestu do pravé LAN přes R2. Na R2 zadej opačný směr: <code>ip route 192.168.1.0 255.255.255.0 192.168.0.1</code>.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci.</p></div>
+                <div class="command-row"><code>show ip interface brief</code><button class="copy-button" type="button">Kopírovat</button><p>Na každém routeru ověř správné adresy a stav <code>up/up</code> obou FastEthernet rozhraní.</p></div>
+                <div class="command-row"><code>show ip route</code><button class="copy-button" type="button">Kopírovat</button><p>Ověř, že tabulka obsahuje statickou trasu do protější LAN označenou písmenem S.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><strong>CHECKPOINT:</strong> Z PC-vlevo pingni <code>192.168.2.10</code> a z PC-vpravo <code>192.168.1.10</code>. Než pokračuješ k VPN, musí být dosažitelné obě PC. Když ping neprojde, zkontroluj IP/masku/gateway PC, kabeláž a obě statické trasy.</div>
+        </article>
+
+        <header class="section-heading" id="ftp">
+            <h2>5. Nešifrovaný FTP a záchyt ve Wiresharku</h2>
+            <p>Porovnej zachycené přihlášení před IPsec a po jeho zapnutí. FTP bez TLS posílá přihlašovací údaje čitelně.</p>
+        </header>
+        <article class="topic">
+            <h3>Nejdřív zachyť provoz bez VPN</h3>
+            <ol>
+                <li>Na PC-vlevo spusť Wireshark na rozhraní <code>enp0s31f6</code> a začni záznam.</li>
+                <li>Na PC-vpravo je podle zadání spuštěný Pure FTP Server. Z PC-vlevo se připoj FTP klientem na <code>192.168.2.10</code>.</li>
+                <li>Zkus nejdřív libovolné uživatelské jméno a heslo (neúspěšné přihlášení nevadí), pak otestuj účet <code>student</code> / <code>student</code>.</li>
+                <li>Ve Wiresharku klikni pravým tlačítkem na paket FTP a vyber <strong>Follow → TCP Stream</strong>. Porovnej, co lze přečíst v obou relacích.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>ftp 192.168.2.10</code><button class="copy-button" type="button">Kopírovat</button><p>V Linuxové konzoli spustí FTP klienta směrem k serveru na PC-vpravo. Klient se následně zeptá na uživatelské jméno a heslo. Pokud klient není nainstalovaný, použij předpřipravený FTP klient podle laboratorního pracoviště.</p></div>
+                <div class="command-row"><code>ftp</code><button class="copy-button" type="button">Kopírovat</button><p>Ve Wiresharku můžeš použít zobrazovací filtr pro FTP komunikaci.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">Provoz vytvářej mezi laboratorními PC v přidělené topologii. Účelem kroku je bezpečně porovnat nezabezpečený a IPsec chráněný záchyt.</div>
+        </article>
+
+        <header class="section-heading" id="vpn-r1">
+            <h2>6. IPsec VPN na R1</h2>
+            <p>Nastav IKE/ISAKMP fázi 1, ESP transformaci, ACL pro zajímavý provoz a kryptomapu na WAN port.</p>
+        </header>
+        <article class="topic">
+            <h3>R1 · kompletní příprava IPsec</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfiguraci R1.</p></div>
+                <div class="command-row"><code>crypto isakmp policy 1</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří IKE/ISAKMP politiku s prioritou 1. Obě strany musí mít vzájemně slučitelné parametry.</p></div>
+                <div class="command-row"><code>authentication pre-share</code><button class="copy-button" type="button">Kopírovat</button><p>Určí autentizaci pomocí společného předem sdíleného klíče PSK.</p></div>
+                <div class="command-row"><code>encryption aes 256</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví AES se 256bitovým klíčem pro IKE fázi 1.</p></div>
+                <div class="command-row"><code>hash sha</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví SHA-1 jako hashovací algoritmus, jak požaduje zadání.</p></div>
+                <div class="command-row"><code>group 2</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví Diffie-Hellman grupu 2 pro dohodu klíčového materiálu.</p></div>
+                <div class="command-row"><code>lifetime 86400</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví životnost IKE SA na 86400 sekund, tedy jeden den.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci politiky a vrátí se do globální konfigurace.</p></div>
+                <div class="command-row"><code>crypto isakmp key cisco address 192.168.0.2</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví PSK <code>cisco</code> pro protější peer R2. Na R2 musí být stejné heslo, ale adresa peeru bude <code>192.168.0.1</code>.</p></div>
+                <div class="command-row"><code>crypto ipsec transform-set ESP-AES esp-aes 256 esp-sha-hmac</code><button class="copy-button" type="button">Kopírovat</button><p>Definuje IPsec fázi 2: ESP s AES-256 šifrováním a SHA HMAC integritou.</p></div>
+                <div class="command-row"><code>ip access-list extended ZAJIMAVY-PROVOZ</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří rozšířený ACL, který označí provoz mezi LAN jako provoz chráněný tunelem.</p></div>
+                <div class="command-row"><code>permit ip 192.168.1.0 0.0.0.255 192.168.2.0 0.0.0.255</code><button class="copy-button" type="button">Kopírovat</button><p>Na R1 vybere IP provoz z levé LAN do pravé LAN. Wildcard <code>0.0.0.255</code> odpovídá masce /24.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci ACL.</p></div>
+                <div class="command-row"><code>crypto map IPSEC-MAPA 1 ipsec-isakmp</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří první položku kryptomapy, která propojí ACL, peer a transform set.</p></div>
+                <div class="command-row"><code>match address ZAJIMAVY-PROVOZ</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí k mapě ACL určující provoz k šifrování.</p></div>
+                <div class="command-row"><code>set peer 192.168.0.2</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví WAN adresu protějšího routeru R2 jako vzdálený peer.</p></div>
+                <div class="command-row"><code>set transform-set ESP-AES</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí šifrovací a autentizační sadu pro IPsec fázi 2.</p></div>
+                <div class="command-row"><code>set pfs group2</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne Perfect Forward Secrecy a pro novou IPsec SA použije DH grupu 2.</p></div>
+                <div class="command-row"><code>set security-association lifetime seconds 86400</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví životnost IPsec SA na jeden den.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci kryptomapy.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/0</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere WAN rozhraní R1, kterým komunikuje s R2 přes HUB.</p></div>
+                <div class="command-row"><code>crypto map IPSEC-MAPA</code><button class="copy-button" type="button">Kopírovat</button><p>Aplikuje kryptomapu na WAN rozhraní. Bez tohoto kroku se IPsec na rozhraní nepoužije.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Dokončí konfiguraci R1.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <header class="section-heading" id="vpn-r2">
+            <h2>6. IPsec VPN na R2</h2>
+            <p>Na druhém routeru nastav stejné parametry a obrať peer i směr ACL.</p>
+        </header>
+        <article class="topic">
+            <h3>R2 · zrcadlová konfigurace</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfiguraci R2.</p></div>
+                <div class="command-row"><code>crypto isakmp policy 1</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří odpovídající politiku IKE/ISAKMP.</p></div>
+                <div class="command-row"><code>authentication pre-share</code><button class="copy-button" type="button">Kopírovat</button><p>Použije stejný způsob autentizace jako R1.</p></div>
+                <div class="command-row"><code>encryption aes 256</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví AES-256 pro fázi 1.</p></div>
+                <div class="command-row"><code>hash sha</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví SHA-1 pro fázi 1.</p></div>
+                <div class="command-row"><code>group 2</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví stejnou Diffie-Hellman grupu jako na R1.</p></div>
+                <div class="command-row"><code>lifetime 86400</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví životnost IKE SA na jeden den.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci politiky.</p></div>
+                <div class="command-row"><code>crypto isakmp key cisco address 192.168.0.1</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví stejný PSK jako na R1 a jako peer uvede WAN adresu R1.</p></div>
+                <div class="command-row"><code>crypto ipsec transform-set ESP-AES esp-aes 256 esp-sha-hmac</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří stejnou ESP transformaci jako na R1.</p></div>
+                <div class="command-row"><code>ip access-list extended ZAJIMAVY-PROVOZ</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří ACL pro provoz, který má chránit tunel.</p></div>
+                <div class="command-row"><code>permit ip 192.168.2.0 0.0.0.255 192.168.1.0 0.0.0.255</code><button class="copy-button" type="button">Kopírovat</button><p>Na R2 je pořadí sítí obrácené: zdroj pravá LAN, cíl levá LAN. Obě ACL musí být zrcadlové.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci ACL.</p></div>
+                <div class="command-row"><code>crypto map IPSEC-MAPA 1 ipsec-isakmp</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří položku kryptomapy na R2.</p></div>
+                <div class="command-row"><code>match address ZAJIMAVY-PROVOZ</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí ACL k mapě.</p></div>
+                <div class="command-row"><code>set peer 192.168.0.1</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví R1 jako vzdálený peer.</p></div>
+                <div class="command-row"><code>set transform-set ESP-AES</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí ESP sadu.</p></div>
+                <div class="command-row"><code>set pfs group2</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne PFS s DH grupou 2.</p></div>
+                <div class="command-row"><code>set security-association lifetime seconds 86400</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví IPsec SA na jeden den.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Ukončí konfiguraci kryptomapy.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/0</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere WAN rozhraní R2.</p></div>
+                <div class="command-row"><code>crypto map IPSEC-MAPA</code><button class="copy-button" type="button">Kopírovat</button><p>Aplikuje kryptomapu na WAN rozhraní R2.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Dokončí konfiguraci R2.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">R1 a R2 musejí mít stejné algoritmy, PSK, DH skupinu a dobu životnosti. Adresa peeru a pořadí zdrojové/cílové sítě v ACL jsou na každé straně opačné.</div>
+        </article>
+
+        <header class="section-heading" id="overeni">
+            <h2>7–8. Ověření tunelu a druhý záchyt</h2>
+            <p>IPsec tunel se obvykle vyjedná až ve chvíli, kdy začne téct provoz odpovídající ACL.</p>
+        </header>
+        <article class="topic">
+            <h3>Vyvolej provoz a zkontroluj stav</h3>
+            <ol>
+                <li>Na PC-vlevo spusť Wireshark na stejném rozhraní jako předtím a začni nový záznam.</li>
+                <li>Vytvoř FTP spojení z PC-vlevo na PC-vpravo a projdi TCP stream. Porovnej, zda jsou přihlašovací údaje čitelné jako v prvním záchytu.</li>
+                <li>Na routerech zkontroluj ISAKMP SA a IPsec SA. Potom porovnej počítadla paketů před a po vygenerování provozu.</li>
+                <li>Ve Wiresharku si prohlédni pakety označené ISAKMP. Ty ukazují dojednávání parametrů; uživatelský provoz tunelu se přenáší jako ESP.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>show crypto isakmp sa</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí stav fáze 1. Po úspěšném vyjednání IOS typicky ukáže stav <code>QM_IDLE</code>.</p></div>
+                <div class="command-row"><code>show crypto isakmp key</code><button class="copy-button" type="button">Kopírovat</button><p>Vypíše nastavené peer záznamy PSK (zobrazení klíče závisí na IOS). Ověř zejména správnou adresu protějšího peeru.</p></div>
+                <div class="command-row"><code>show crypto ipsec sa</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí fázi 2, peer, SPI a počítadla encaps/decaps. Po přenosu dat by se počítadla měla zvyšovat.</p></div>
+                <div class="command-row"><code>show access-lists ZAJIMAVY-PROVOZ</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří, že ACL odpovídá podsítím a že její počítadla zásahů rostou při provozu mezi PC.</p></div>
+                <div class="command-row"><code>show crypto map</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří, že mapa odkazuje na správný peer, ACL a transform set.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout">IPsec šifruje komunikaci mezi WAN adresami routerů, nikoli běžně čitelný vnitřní FTP paket. Na HUBu by po navázání tunelu měl být vidět ESP provoz místo obsahu FTP relace. ISAKMP pakety slouží k dojednání spojení a klíčů.</div>
+        </article>
+
+        <header class="section-heading" id="obnova">
+            <h2>10. Obnovení původního stavu</h2>
+            <p>Po skončení uvolni pracoviště podle zadání.</p>
+        </header>
+        <article class="topic">
+            <ol>
+                <li>Rozpoj laboratorní kabely a vrať zařízení do původního zapojení.</li>
+                <li>Restartuj R1 a R2. Pokud se router zeptá, zda uložit konfiguraci, odpověz <code>no</code>, aby zůstala jen dočasná konfigurace cvičení.</li>
+                <li>Na obou PC odeber laboratorní statické IPv4 adresy a vrať síťové adaptéry do původního nastavení.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>reload</code><button class="copy-button" type="button">Kopírovat</button><p>V privilegovaném režimu restartuje router. Proveď na R1 i R2. Při dotazu na uložení změn zvol <code>no</code>.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><strong>Neukládej laboratorní konfiguraci.</strong> Nepoužívej <code>write memory</code> ani <code>copy running-config startup-config</code>. Před ukončením ověř, že oba routery restartovaly a PC nemají laboratorní IP adresy.</div>
+        </article>
+
+        <footer>
+            Postup a adresy vycházejí z <code>docs/lab2.pdf</code>. Laboratorní zadání používá Cisco 2811, AES-256, SHA-1, PSK <code>cisco</code>, DH group 2 a lifetime 86400 sekund. Příkazy jsou připravené pro topologii z Obr. 4; názvy rozhraní ověř na konkrétním routeru.
+        </footer>
+    </main>
+    <script src="clipboard.js"></script>
+</body>
+</html>
