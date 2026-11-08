@@ -674,7 +674,7 @@ export function useFetchData() {
 
 function BigComponent() {
   const data = useFetchData();
-  return <Modal>{/* UI obsah */}</Modal>;
+  return &lt;Modal&gt;{/* UI obsah */}&lt;/Modal&gt;;
 }</code></pre>
         </article>
 
@@ -686,12 +686,12 @@ function BigComponent() {
             <pre><code class="language-tsx">// Container
 function ContainerComponent() {
   const [items, setItems] = useState([]);
-  return <PresentationComponent items={items} />;
+  return &lt;PresentationComponent items={items} /&gt;;
 }
 
 // Presentation
 function PresentationComponent({ items }) {
-  return <>{items.map(item => <ItemCard key={item.id} item={item} />)}</>;
+  return &lt;&gt;{items.map(item =&gt; &lt;ItemCard key={item.id} item={item} /&gt;)}&lt;/&gt;;
 }</code></pre>
         </article>
 
@@ -702,12 +702,12 @@ function PresentationComponent({ items }) {
 
             <pre><code class="language-tsx">export default function Toggle({ children }) {
   const [on, setOn] = useState(false);
-  return <ToggleContext.Provider value={{ on, setOn }}>{children}</ToggleContext.Provider>;
+  return &lt;ToggleContext.Provider value={{ on, setOn }}&gt;{children}&lt;/ToggleContext.Provider&gt;;
 }
 
 Toggle.Button = function ToggleButton(props) {
   const { setOn } = useContext(ToggleContext);
-  return <button onClick={() => setOn(prev => !prev)} {...props} />;
+  return &lt;button onClick={() =&gt; setOn(prev =&gt; !prev)} {...props} /&gt;;
 };</code></pre>
         </article>
 
@@ -718,9 +718,9 @@ Toggle.Button = function ToggleButton(props) {
 
             <pre><code class="language-tsx">function Button({ children, textProps, ...rest }) {
   return (
-    <button {...rest}>
-      <Text {...textProps}>{children}</Text>
-    </button>
+    &lt;button {...rest}&gt;
+      &lt;Text {...textProps}&gt;{children}&lt;/Text&gt;
+    &lt;/button&gt;
   );
 }</code></pre>
         </article>
@@ -732,7 +732,7 @@ Toggle.Button = function ToggleButton(props) {
 
             <pre><code class="language-tsx">function Component({ children }) {
   const [count, setCount] = useState(0);
-  return <div><button onClick={() => setCount(c => c + 1)}>{count}</button>{children}</div>;
+  return &lt;div&gt;&lt;button onClick={() =&gt; setCount(c =&gt; c + 1)}&gt;{count}&lt;/button&gt;{children}&lt;/div&gt;;
 }</code></pre>
         </article>
 
@@ -754,7 +754,7 @@ Toggle.Button = function ToggleButton(props) {
             <p>Funkce přijímající komponentu a vracející její vylepšenou verzi.</p>
 
             <pre><code class="language-tsx">function withStyles(Component) {
-  return props => <Component style={{ padding: 8 }} {...props} />;
+  return props =&gt; &lt;Component style={{ padding: 8 }} {...props} /&gt;;
 }</code></pre>
         </article>
 
@@ -764,7 +764,7 @@ Toggle.Button = function ToggleButton(props) {
             <p>Kustomizace vzhledu komponenty pomocí předdefinovaných sad stylů.</p>
 
             <pre><code class="language-tsx">function Button({ variant = 'primary', ...rest }) {
-  return <button style={styles.variant[variant]} {...rest} />;
+  return &lt;button style={styles.variant[variant]} {...rest} /&gt;;
 }</code></pre>
         </article>
 
@@ -776,7 +776,7 @@ Toggle.Button = function ToggleButton(props) {
             <pre><code class="language-tsx">function Component({ componentRef }) {
   const [count, setCount] = useState(0);
   useImperativeHandle(componentRef, () => ({ reset: () => setCount(0) }));
-  return <div>{count}</div>;
+  return &lt;div&gt;{count}&lt;/div&gt;;
 }</code></pre>
         </article>
 
@@ -787,8 +787,8 @@ Toggle.Button = function ToggleButton(props) {
 
             <pre><code class="language-tsx">export function UserProvider({ children }) {
   const { data: user } = useFetchUser();
-  if (!user) return <div>Loading...</div>;
-  return <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>;
+  if (!user) return &lt;div&gt;Loading...&lt;/div&gt;;
+  return &lt;UserContext.Provider value={{ user }}&gt;{children}&lt;/UserContext.Provider&gt;;
 }</code></pre>
         </article>
 
@@ -800,6 +800,7 @@ Toggle.Button = function ToggleButton(props) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-tsx.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-typescript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-git.min.js"></script>
+    <script src="clipboard.js"></script>
 
     <script>
         // Globální vyhledávání v navigaci
@@ -821,32 +822,6 @@ Toggle.Button = function ToggleButton(props) {
 
         document.getElementById('searchInput')?.addEventListener('input', filterNav);
 
-        document.getElementById('conventional-commits')?.addEventListener('click', async event => {
-            const button = event.target.closest('[data-copy-emoji]');
-            if (!button) return;
-
-            const emoji = button.dataset.copyEmoji;
-            const status = document.querySelector('#conventional-commits .copy-status');
-
-            try {
-                await navigator.clipboard.writeText(emoji);
-            } catch {
-                const field = document.createElement('textarea');
-                field.value = emoji;
-                field.style.position = 'fixed';
-                field.style.opacity = '0';
-                document.body.append(field);
-                field.select();
-                const copied = document.execCommand('copy');
-                field.remove();
-                if (!copied) {
-                    status.textContent = 'Kopírování se nepodařilo.';
-                    return;
-                }
-            }
-
-            status.textContent = `Zkopírováno: ${emoji}`;
-        });
     </script>
 </body>
 </html>
