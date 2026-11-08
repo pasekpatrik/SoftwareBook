@@ -6,311 +6,28 @@
     <title>Software Book | Patterns, Commits & Linux</title>
     <!-- Prism.js CSS pro zvýraznění syntaxe kódu -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --sidebar-bg: #1e293b;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-color: #38bdf8;
-            --accent-hover: #0284c7;
-            --border-color: #334155;
-            --card-bg: #1e293b;
-            --sidebar-width: 290px;
-            --badge-creational: #ec4899;
-            --badge-structural: #3b82f6;
-            --badge-behavioral: #10b981;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            display: flex;
-        }
-
-        /* Postranní navigace */
-        sidebar {
-            width: var(--sidebar-width);
-            height: 100vh;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            position: fixed;
-            top: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            padding: 1.5rem 1rem;
-            overflow-y: auto;
-        }
-
-        sidebar h2 {
-            font-size: 1.1rem;
-            margin-bottom: 0.25rem;
-            color: var(--accent-color);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        sidebar p.subtitle {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-        }
-
-        .search-box {
-            margin-bottom: 1rem;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 0.5rem;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            background: var(--bg-color);
-            color: var(--text-color);
-            font-size: 0.9rem;
-        }
-
-        .nav-section-title {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin: 1.2rem 0 0.4rem 0;
-            letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.2rem;
-        }
-
-        sidebar ul {
-            list-style: none;
-        }
-
-        sidebar li {
-            margin-bottom: 0.2rem;
-        }
-
-        sidebar a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 0.85rem;
-            display: block;
-            padding: 0.3rem 0.5rem;
-            border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
-        sidebar a:hover {
-            color: var(--text-color);
-            background-color: var(--border-color);
-        }
-
-        /* Hlavní obsah */
-        main {
-            margin-left: var(--sidebar-width);
-            padding: 2.5rem;
-            max-width: 1000px;
-            width: 100%;
-        }
-
-        header.page-header {
-            margin-bottom: 2.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        header.page-header h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        header.page-header p {
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
-        header.section-header {
-            margin: 3rem 0 1.5rem 0;
-            padding-bottom: 0.8rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        header.section-header h2 {
-            font-size: 1.8rem;
-            color: var(--accent-color);
-        }
-
-        header.section-header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
-
-        a {
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        /* Sekce karet */
-        .pattern-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 1.8rem;
-            margin-bottom: 2rem;
-            scroll-margin-top: 2rem;
-        }
-
-        .pattern-card h3 {
-            font-size: 1.3rem;
-            color: var(--accent-color);
-            margin-bottom: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .pattern-card p {
-            margin-bottom: 1rem;
-            color: var(--text-muted);
-        }
-
-        .pattern-card code {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
-            color: var(--accent-color);
-            font-size: 0.9em;
-        }
-
-        /* Badge pro kategorie patternů */
-        .badge {
-            font-size: 0.75rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 12px;
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 0.05em;
-        }
-
-        .badge-creational {
-            background: rgba(236, 72, 153, 0.2);
-            color: var(--badge-creational);
-            border: 1px solid var(--badge-creational);
-        }
-
-        .badge-structural {
-            background: rgba(59, 130, 246, 0.2);
-            color: var(--badge-structural);
-            border: 1px solid var(--badge-structural);
-        }
-
-        .badge-behavioral {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--badge-behavioral);
-            border: 1px solid var(--badge-behavioral);
-        }
-
-        /* Tabulky */
-        .custom-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-            font-size: 0.9rem;
-        }
-
-        .custom-table th, .custom-table td {
-            text-align: left;
-            padding: 0.6rem 0.8rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .custom-table th {
-            color: var(--accent-color);
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .custom-table td:first-child {
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-        .copy-emoji-button {
-            padding: 0.25rem 0.45rem;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            cursor: pointer;
-        }
-
-        .copy-emoji-button:hover {
-            border-color: var(--accent-color);
-        }
-
-        .copy-status {
-            min-height: 1.4rem;
-            color: var(--accent-color);
-            font-size: 0.85rem;
-        }
-
-        /* Úprava Prism.js */
-        pre[class*="language-"] {
-            border-radius: 8px;
-            margin: 1rem 0 1rem 0 !important;
-            border: 1px solid var(--border-color);
-        }
-
-        /* Responzivita */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-            main {
-                margin-left: 0;
-                padding: 1.5rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
     <!-- Postranní lišta -->
-    <sidebar>
-        <h2>Software Book</h2>
-        <p class="subtitle">Complete Knowledge Base</p>
-        
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Hledat cokoliv..." onkeyup="filterNav()">
-        </div>
+    <aside class="sidebar">
+        <a class="brand" href="index.html">Software Book</a>
+        <p class="brand-note">Complete Knowledge Base</p>
+        <label class="search-label" for="searchInput">Hledat cokoliv...</label>
+        <input id="searchInput" type="search" placeholder="Hledat cokoliv..." autocomplete="off">
 
-        <div class="nav-section-title">Unix Operating Systems</div>
+        <div class="nav-title">Unix Operating Systems</div>
         <ul>
             <li><a href="uop.html">Přehled předmětu UOP</a></li>
         </ul>
 
-        <div class="nav-section-title">Kryptografie a bezpečnost</div>
+        <div class="nav-title">Kryptografie a bezpečnost</div>
         <ul>
             <li><a href="lab.html">Příkazy do laboratoře</a></li>
         </ul>
 
-        <div class="nav-section-title">Linux CLI</div>
+        <div class="nav-title">Linux CLI</div>
         <ul>
             <li><a href="#linux-files">Linux: Soubory a Složky</a></li>
             <li><a href="#linux-system">Linux: Systém a Procesy</a></li>
@@ -318,19 +35,19 @@
             <li><a href="#linux-help">Linux: Nápověda</a></li>
         </ul>
 
-        <div class="nav-section-title">Git Convention</div>
+        <div class="nav-title">Git Convention</div>
         <ul>
             <li><a href="#conventional-commits">Conventional Commits</a></li>
         </ul>
 
-        <div class="nav-section-title">GoF Design Patterns</div>
+        <div class="nav-title">GoF Design Patterns</div>
         <ul>
             <li><a href="#gof-creational">Vytvářecí (Creational)</a></li>
             <li><a href="#gof-structural">Strukturální (Structural)</a></li>
             <li><a href="#gof-behavioral">Chování (Behavioral)</a></li>
         </ul>
 
-        <div class="nav-section-title">React Patterns</div>
+        <div class="nav-title">React Patterns</div>
         <ul>
             <li><a href="#pattern-1">1. Single Responsibility</a></li>
             <li><a href="#pattern-2">2. Container & Presentation</a></li>
@@ -343,7 +60,7 @@
             <li><a href="#pattern-9">9. Expose via Ref</a></li>
             <li><a href="#pattern-10">10. Providers for Data</a></li>
         </ul>
-    </sidebar>
+    </aside>
 
     <!-- Hlavní obsah stránky -->
     <main>
@@ -353,14 +70,14 @@
         </header>
 
         <!-- SEKCIE: LINUX COMMANDS -->
-        <header class="section-header" id="linux-section">
+        <header class="section-heading" id="linux-section">
             <h2>Linux CLI Příkazy</h2>
             <p>Základní příkazy převzaté z <a href="https://wiki.ubuntu.cz/z%C3%A1kladn%C3%AD_p%C5%99%C3%ADkazy" target="_blank" rel="noopener">Wiki Ubuntu CZ</a>.</p>
         </header>
 
-        <article class="pattern-card" id="linux-files">
+        <article class="topic" id="linux-files">
             <h3>Práce se soubory a adresáři</h3>
-            <table class="custom-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Příkaz</th>
@@ -382,9 +99,9 @@
             </table>
         </article>
 
-        <article class="pattern-card" id="linux-system">
+        <article class="topic" id="linux-system">
             <h3>Správa systému, disků a procesů</h3>
-            <table class="custom-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Příkaz</th>
@@ -404,9 +121,9 @@
             </table>
         </article>
 
-        <article class="pattern-card" id="linux-users">
+        <article class="topic" id="linux-users">
             <h3>Uživatelé a přístupová práva</h3>
-            <table class="custom-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Příkaz</th>
@@ -421,9 +138,9 @@
             </table>
         </article>
 
-        <article class="pattern-card" id="linux-help">
+        <article class="topic" id="linux-help">
             <h3>Získání nápovědy</h3>
-            <table class="custom-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Příkaz</th>
@@ -438,12 +155,12 @@
         </article>
 
         <!-- SEKCIE: CONVENTIONAL COMMITS -->
-        <header class="section-header" id="commits-section">
+        <header class="section-heading" id="commits-section">
             <h2>Git Convention</h2>
             <p>Specifikace <a href="https://www.conventionalcommits.org/en/v1.0.0/" target="_blank" rel="noopener">Conventional Commits (v1.0.0)</a>.</p>
         </header>
 
-        <article class="pattern-card" id="conventional-commits">
+        <article class="topic" id="conventional-commits">
             <h3>Conventional Commits (v1.0.0)</h3>
             <p>Standard pro přehledné a automatizovatelné commit zprávy.</p>
 
@@ -453,7 +170,7 @@
 
 [optional footer(s)]</code></pre>
 
-            <table class="custom-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Emoji</th>
@@ -463,15 +180,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td>✨ <button class="copy-emoji-button" type="button" data-copy-emoji="✨" aria-label="Kopírovat emoji ✨">Kopírovat</button></td><td><code>feat</code></td><td>MINOR</td><td>Přidání nové funkcionality do aplikace.</td></tr>
-                    <tr><td>🪲 <button class="copy-emoji-button" type="button" data-copy-emoji="🪲" aria-label="Kopírovat emoji 🪲">Kopírovat</button></td><td><code>fix</code></td><td>PATCH</td><td>Oprava chyby / bugu v kódu.</td></tr>
-                    <tr><td>🔧 <button class="copy-emoji-button" type="button" data-copy-emoji="🔧" aria-label="Kopírovat emoji 🔧">Kopírovat</button></td><td><code>chore</code></td><td>-</td><td>Běžná údržba, aktualizace verzí a konfigurace.</td></tr>
-                    <tr><td>📄 <button class="copy-emoji-button" type="button" data-copy-emoji="📄" aria-label="Kopírovat emoji 📄">Kopírovat</button></td><td><code>style</code></td><td>-</td><td>Úpravy stylu kódu (formátování bez změny logiky).</td></tr>
-                    <tr><td>🔨 <button class="copy-emoji-button" type="button" data-copy-emoji="🔨" aria-label="Kopírovat emoji 🔨">Kopírovat</button></td><td><code>refactor</code></td><td>-</td><td>Refaktoring kódu bez změny jeho chování.</td></tr>
-                    <tr><td>⚡ <button class="copy-emoji-button" type="button" data-copy-emoji="⚡" aria-label="Kopírovat emoji ⚡">Kopírovat</button></td><td><code>perf</code></td><td>-</td><td>Změny zlepšující výkon.</td></tr>
-                    <tr><td>☑️ <button class="copy-emoji-button" type="button" data-copy-emoji="☑️" aria-label="Kopírovat emoji ☑️">Kopírovat</button></td><td><code>test</code></td><td>-</td><td>Přidání nebo úprava testů.</td></tr>
-                    <tr><td>👷 <button class="copy-emoji-button" type="button" data-copy-emoji="👷" aria-label="Kopírovat emoji 👷">Kopírovat</button></td><td><code>build / ci</code></td><td>-</td><td>Změny v buildu, závislostech nebo CI/CD skriptech.</td></tr>
-                    <tr><td>📚 <button class="copy-emoji-button" type="button" data-copy-emoji="📚" aria-label="Kopírovat emoji 📚">Kopírovat</button></td><td><code>docs</code></td><td>-</td><td>Změny v dokumentaci.</td></tr>
+                    <tr><td>✨ <button class="copy-button" type="button" data-copy-emoji="✨" aria-label="Kopírovat emoji ✨">Kopírovat</button></td><td><code>feat</code></td><td>MINOR</td><td>Přidání nové funkcionality do aplikace.</td></tr>
+                    <tr><td>🪲 <button class="copy-button" type="button" data-copy-emoji="🪲" aria-label="Kopírovat emoji 🪲">Kopírovat</button></td><td><code>fix</code></td><td>PATCH</td><td>Oprava chyby / bugu v kódu.</td></tr>
+                    <tr><td>🔧 <button class="copy-button" type="button" data-copy-emoji="🔧" aria-label="Kopírovat emoji 🔧">Kopírovat</button></td><td><code>chore</code></td><td>-</td><td>Běžná údržba, aktualizace verzí a konfigurace.</td></tr>
+                    <tr><td>📄 <button class="copy-button" type="button" data-copy-emoji="📄" aria-label="Kopírovat emoji 📄">Kopírovat</button></td><td><code>style</code></td><td>-</td><td>Úpravy stylu kódu (formátování bez změny logiky).</td></tr>
+                    <tr><td>🔨 <button class="copy-button" type="button" data-copy-emoji="🔨" aria-label="Kopírovat emoji 🔨">Kopírovat</button></td><td><code>refactor</code></td><td>-</td><td>Refaktoring kódu bez změny jeho chování.</td></tr>
+                    <tr><td>⚡ <button class="copy-button" type="button" data-copy-emoji="⚡" aria-label="Kopírovat emoji ⚡">Kopírovat</button></td><td><code>perf</code></td><td>-</td><td>Změny zlepšující výkon.</td></tr>
+                    <tr><td>☑️ <button class="copy-button" type="button" data-copy-emoji="☑️" aria-label="Kopírovat emoji ☑️">Kopírovat</button></td><td><code>test</code></td><td>-</td><td>Přidání nebo úprava testů.</td></tr>
+                    <tr><td>👷 <button class="copy-button" type="button" data-copy-emoji="👷" aria-label="Kopírovat emoji 👷">Kopírovat</button></td><td><code>build / ci</code></td><td>-</td><td>Změny v buildu, závislostech nebo CI/CD skriptech.</td></tr>
+                    <tr><td>📚 <button class="copy-button" type="button" data-copy-emoji="📚" aria-label="Kopírovat emoji 📚">Kopírovat</button></td><td><code>docs</code></td><td>-</td><td>Změny v dokumentaci.</td></tr>
                 </tbody>
             </table>
             <p class="copy-status" aria-live="polite"></p>
@@ -483,17 +200,17 @@
         </article>
 
         <!-- SEKCIE: GOF DESIGN PATTERNS -->
-        <header class="section-header" id="gof-section">
+        <header class="section-heading" id="gof-section">
             <h2>GoF Design Patterns (Refactoring.Guru)</h2>
             <p>Přehled 22 klasických návrhových vzorů podle knihy Gang of Four z katalogu <a href="https://refactoring.guru/design-patterns/catalog" target="_blank" rel="noopener">Refactoring.Guru</a>.</p>
         </header>
 
         <!-- Creational Patterns -->
-        <article class="pattern-card" id="gof-creational">
+        <article class="topic" id="gof-creational">
             <h3>Vytvářecí vzory (Creational Patterns) <span class="badge badge-creational">Creational</span></h3>
             <p>Řeší mechanismy vytváření objektů, zvyšují flexibilitu a opakovatelnost kódu.</p>
 
-            <table class="custom-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Vzor</th>
@@ -540,11 +257,11 @@
         </article>
 
         <!-- Structural Patterns -->
-        <article class="pattern-card" id="gof-structural">
+        <article class="topic" id="gof-structural">
             <h3>Strukturální vzory (Structural Patterns) <span class="badge badge-structural">Structural</span></h3>
             <p>Vysvětlují, jak skládat objekty a třídy do větších struktur při zachování pružnosti a efektivity.</p>
 
-            <table class="custom-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Vzor</th>
@@ -597,11 +314,11 @@ class MilkDecorator implements Coffee {
         </article>
 
         <!-- Behavioral Patterns -->
-        <article class="pattern-card" id="gof-behavioral">
+        <article class="topic" id="gof-behavioral">
             <h3>Vzor chování (Behavioral Patterns) <span class="badge badge-behavioral">Behavioral</span></h3>
             <p>Zabývají se efektivní komunikací a dělbou odpovědností mezi objekty.</p>
 
-            <table class="custom-table">
+            <table>
                 <thead>
                     <tr>
                         <th>Vzor</th>
@@ -654,13 +371,13 @@ class MilkDecorator implements Coffee {
         </article>
 
         <!-- SEKCIE: REACT PATTERNS -->
-        <header class="section-header" id="react-section">
+        <header class="section-heading" id="react-section">
             <h2>React Design Patterns</h2>
             <p>Kolekce vzorů od autora <a href="https://cosden.solutions" target="_blank" rel="noopener">Cosden Solutions</a>.</p>
         </header>
 
         <!-- Pattern 1 -->
-        <article class="pattern-card" id="pattern-1">
+        <article class="topic" id="pattern-1">
             <h3>1. Single Responsibility Principle</h3>
             <p>Komponenta by měla mít pouze jednu zodpovědnost a ostatní logiku delegovat jinam.</p>
 
@@ -679,7 +396,7 @@ function BigComponent() {
         </article>
 
         <!-- Pattern 2 -->
-        <article class="pattern-card" id="pattern-2">
+        <article class="topic" id="pattern-2">
             <h3>2. Container and Presentation Components</h3>
             <p>Oddělení logiky (Container) od vykreslování uživatelského rozhraní (Presentation).</p>
 
@@ -696,7 +413,7 @@ function PresentationComponent({ items }) {
         </article>
 
         <!-- Pattern 3 -->
-        <article class="pattern-card" id="pattern-3">
+        <article class="topic" id="pattern-3">
             <h3>3. Compound Components Pattern</h3>
             <p>Propojení souvisejících komponent pomocí Context API pro flexibilní API rozhraní.</p>
 
@@ -712,7 +429,7 @@ Toggle.Button = function ToggleButton(props) {
         </article>
 
         <!-- Pattern 4 -->
-        <article class="pattern-card" id="pattern-4">
+        <article class="topic" id="pattern-4">
             <h3>4. Nested Prop Forwarding</h3>
             <p>Předávání props do zanořených komponent.</p>
 
@@ -726,7 +443,7 @@ Toggle.Button = function ToggleButton(props) {
         </article>
 
         <!-- Pattern 5 -->
-        <article class="pattern-card" id="pattern-5">
+        <article class="topic" id="pattern-5">
             <h3>5. Children Components Pattern</h3>
             <p>Optimalizace výkonu předáváním komponent skrze <code>children</code> prop.</p>
 
@@ -737,7 +454,7 @@ Toggle.Button = function ToggleButton(props) {
         </article>
 
         <!-- Pattern 6 -->
-        <article class="pattern-card" id="pattern-6">
+        <article class="topic" id="pattern-6">
             <h3>6. Custom Hooks</h3>
             <p>Extrahování znovupoužitelné stavové logiky do vlastních hooků.</p>
 
@@ -749,7 +466,7 @@ Toggle.Button = function ToggleButton(props) {
         </article>
 
         <!-- Pattern 7 -->
-        <article class="pattern-card" id="pattern-7">
+        <article class="topic" id="pattern-7">
             <h3>7. Higher Order Components (HOC)</h3>
             <p>Funkce přijímající komponentu a vracející její vylepšenou verzi.</p>
 
@@ -759,7 +476,7 @@ Toggle.Button = function ToggleButton(props) {
         </article>
 
         <!-- Pattern 8 -->
-        <article class="pattern-card" id="pattern-8">
+        <article class="topic" id="pattern-8">
             <h3>8. Variant Props</h3>
             <p>Kustomizace vzhledu komponenty pomocí předdefinovaných sad stylů.</p>
 
@@ -769,7 +486,7 @@ Toggle.Button = function ToggleButton(props) {
         </article>
 
         <!-- Pattern 9 -->
-        <article class="pattern-card" id="pattern-9">
+        <article class="topic" id="pattern-9">
             <h3>9. Expose functionality through ref</h3>
             <p>Zpřístupnění vnitřní logiky potomka směrem k rodiči přes <code>useImperativeHandle</code>.</p>
 
@@ -781,7 +498,7 @@ Toggle.Button = function ToggleButton(props) {
         </article>
 
         <!-- Pattern 10 -->
-        <article class="pattern-card" id="pattern-10">
+        <article class="topic" id="pattern-10">
             <h3>10. Use providers for frequently used data</h3>
             <p>Sdílení často používaných dat v rámci aplikace pomocí Context Provideru.</p>
 
@@ -807,7 +524,7 @@ Toggle.Button = function ToggleButton(props) {
         function filterNav() {
             const input = document.getElementById('searchInput');
             const filter = input.value.toLowerCase();
-            const links = document.querySelectorAll('sidebar ul li');
+            const links = document.querySelectorAll('.sidebar ul li');
 
             links.forEach(li => {
                 const a = li.querySelector('a');
