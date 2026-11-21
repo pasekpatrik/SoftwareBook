@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Příprava k laboratorní úloze 3: konfigurace a ověření vzdáleného přístupu pomocí WireGuard VPN.">
+    <title>Úloha 3 · WireGuard | Software Book</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <aside class="sidebar" aria-label="Navigace úlohy">
+        <a class="brand" href="index.html">Software Book</a>
+        <p class="brand-note">Kryptografie a bezpečnost</p>
+        <a class="back-link" href="lab.html">← Přehled laboratorních příkazů</a>
+        <a class="back-link" href="lab1.html">Úloha 1 · Zabezpečení přepínače</a>
+        <a class="back-link" href="lab2.html">Úloha 2 · IPsec VPN</a>
+        <nav>
+            <p class="nav-title">Úloha 3 · WireGuard</p>
+            <ul>
+                <li><a href="#topologie">Topologie a adresy</a></li>
+                <li><a href="#priprava">Zapojení a konzole</a></li>
+                <li><a href="#routery">Konfigurace routerů</a></li>
+                <li><a href="#komunikace">Nešifrovaný provoz</a></li>
+                <li><a href="#klice">Generování klíčů</a></li>
+                <li><a href="#rozhrani">Rozhraní wg0</a></li>
+                <li><a href="#peers">Peer a port</a></li>
+                <li><a href="#overeni">Ověření tunelu</a></li>
+                <li><a href="#obnova">Obnovení pracoviště</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <header class="page-header">
+            <p class="eyebrow">Kryptografie a síťová bezpečnost · B0M32KSB</p>
+            <h1>Úloha 3: Virtuální privátní sítě pomocí WireGuard</h1>
+            <p class="intro">Příprava podle laboratorního zadání: propojení dvou LAN přes Cisco routery a HUB, vytvoření párů klíčů, sdílení veřejných klíčů přes NetCat a konfigurace WireGuard rozhraní wg0.</p>
+            <p><a href="docs/lab3.pdf" target="_blank" rel="noopener">Otevřít původní zadání (PDF)</a></p>
+            <nav class="quick-links" aria-label="Rychlé odkazy">
+                <a href="#topologie">Adresy</a>
+                <a href="#routery">Routery</a>
+                <a href="#klice">Klíče</a>
+                <a href="#rozhrani">wg0</a>
+                <a href="#peers">Peer</a>
+                <a href="#overeni">Ověření</a>
+                <a href="#obnova">Obnova</a>
+            </nav>
+        </header>
+
+        <div class="callout warning"><strong>Hodnoty odpovídají schématu v zadání.</strong> Levá LAN je <code>192.168.1.0/24</code>, pravá LAN <code>192.168.2.0/24</code>, síť routerů přes HUB <code>192.168.0.0/24</code> a virtuální síť WireGuard <code>192.168.5.0/24</code>.</div>
+
+        <header class="section-heading" id="topologie">
+            <h2>Adresní plán topologie</h2>
+            <p>Nejdřív urči fyzické adresy zařízení a virtuální adresy rozhraní wg0.</p>
+        </header>
+        <article class="topic">
+            <div class="table-wrap"><table>
+                <thead><tr><th>Zařízení / rozhraní</th><th>Adresa</th><th>Účel</th></tr></thead>
+                <tbody>
+                    <tr><td>PC-vlevo · NIC1</td><td><code>192.168.1.10/24</code></td><td>IP se podle zadání nemusí nastavovat</td></tr>
+                    <tr><td>R1 · FastEthernet0/1</td><td><code>192.168.1.1/24</code></td><td>Výchozí brána levé LAN</td></tr>
+                    <tr><td>R1 · FastEthernet0/0</td><td><code>192.168.0.1/24</code></td><td>Fyzické rozhraní směrem k HUBu</td></tr>
+                    <tr><td>R2 · FastEthernet0/0</td><td><code>192.168.0.2/24</code></td><td>Fyzické rozhraní směrem k HUBu</td></tr>
+                    <tr><td>R2 · FastEthernet0/1</td><td><code>192.168.2.1/24</code></td><td>Výchozí brána pravé LAN</td></tr>
+                    <tr><td>PC-vpravo · NIC2</td><td><code>192.168.2.10/24</code></td><td>Serverová/koncová část pravé LAN</td></tr>
+                    <tr><td>WireGuard · PC-vlevo</td><td><code>192.168.5.1/24</code></td><td>Virtuální IP levého pc</td></tr>
+                    <tr><td>WireGuard · PC-vpravo</td><td><code>192.168.5.2/24</code></td><td>Virtuální IP pravého pc</td></tr>
+                </tbody>
+            </table></div>
+            <div class="callout">Maska <code>/24</code> odpovídá <code>255.255.255.0</code>. U každé laboratořní konfigurace ověř název rozhraní Cisco <code>FastEthernet0/0</code> a <code>FastEthernet0/1</code>. Ve Wiresharku zachytávaj na <code>enp0s31f6</code>.</div>
+        </article>
+
+        <header class="section-heading" id="priprava">
+            <h2>1–3. Zapojení a konzole</h2>
+            <p>Připrav HUB, dva routery a oba počítače podle obrázku topologie v PDF.</p>
+        </header>
+        <article class="topic">
+            <ol>
+                <li>Připoj R1 a R2 přes HUB přímými kabely. Připoj PC-vlevo a PC-vpravo přímými kabely do stejného HUBu.</li>
+                <li>Na PC-vlevo zvol rozhraní <code>NIC1</code>. Na PC-vpravo zvol <code>NIC2</code>. IP adresu na PC-vlevo podle zadání nemusíš měnit.</li>
+                <li>V PuTTY vytvoř konzolové spojení s R1 i R2. Příkazy oddělené pro R1 a R2 zadávej jen na příslušném routeru.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>enable</code><button class="copy-button" type="button">Kopírovat</button><p>Přejde do privilegovaného režimu.</p></div>
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfigurační režim.</p></div>
+                <div class="command-row"><code>hostname R1</code><button class="copy-button" type="button">Kopírovat</button><p>Na R1 nastav název R1. Na R2 použij <code>hostname R2</code>.</p></div>
+                <div class="command-row"><code>no ip domain-lookup</code><button class="copy-button" type="button">Kopírovat</button><p>Vypne automatický překlad překlepnutého příkazu jako doménového jména.</p></div>
+                <div class="command-row"><code>line console 0</code><button class="copy-button" type="button">Kopírovat</button><p>Přejde do konfigurace konzolové linky.</p></div>
+                <div class="command-row"><code>logging synchronous</code><button class="copy-button" type="button">Kopírovat</button><p>Umožní synchronní výpis konzolových zpráv.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí se do privilegovaného režimu.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <header class="section-heading" id="routery">
+            <h2>4. IPv4 adresy a statické trasy routerů</h2>
+            <p>Nejdřív nastav rozhraní R1 a R2 a potom statickou cestu do protější koncové sítě.</p>
+        </header>
+        <article class="topic">
+            <h3>R1</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfiguraci R1.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere rozhraní směrem k levé LAN.</p></div>
+                <div class="command-row"><code>ip address 192.168.1.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví výchozí bránu levé LAN.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne rozhraní R1.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/0</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere rozhraní směrem k HUBu.</p></div>
+                <div class="command-row"><code>ip address 192.168.0.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví fyzickou adresu R1 ve síti <code>192.168.0.0/24</code>.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne fyzické WAN rozhraní R1.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí se do globální konfigurace.</p></div>
+                <div class="command-row"><code>ip route 192.168.2.0 255.255.255.0 192.168.0.2</code><button class="copy-button" type="button">Kopírovat</button><p>Přidá cestu R1 do pravé LAN přes R2.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Dokončí konfiguraci R1.</p></div>
+            </div>
+
+            <h3 style="margin-top: 1.5rem">R2</h3>
+            <div class="command-list">
+                <div class="command-row"><code>configure terminal</code><button class="copy-button" type="button">Kopírovat</button><p>Otevře globální konfiguraci R2.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/1</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere rozhraní směrem k pravé LAN.</p></div>
+                <div class="command-row"><code>ip address 192.168.2.1 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví výchozí bránu pravé LAN.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne rozhraní R2.</p></div>
+                <div class="command-row"><code>interface FastEthernet0/0</code><button class="copy-button" type="button">Kopírovat</button><p>Vybere rozhraní směrem k HUBu.</p></div>
+                <div class="command-row"><code>ip address 192.168.0.2 255.255.255.0</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví fyzickou adresu R2 ve síti <code>192.168.0.0/24</code>.</p></div>
+                <div class="command-row"><code>no shutdown</code><button class="copy-button" type="button">Kopírovat</button><p>Zapne fyzické WAN rozhraní R2.</p></div>
+                <div class="command-row"><code>exit</code><button class="copy-button" type="button">Kopírovat</button><p>Vrátí se do globální konfigurace.</p></div>
+                <div class="command-row"><code>ip route 192.168.1.0 255.255.255.0 192.168.0.1</code><button class="copy-button" type="button">Kopírovat</button><p>Přidá cestu R2 do levé LAN přes R1.</p></div>
+                <div class="command-row"><code>end</code><button class="copy-button" type="button">Kopírovat</button><p>Dokončí konfiguraci R2.</p></div>
+            </div>
+            <div class="command-list">
+                <div class="command-row"><code>show ip interface brief</code><button class="copy-button" type="button">Kopírovat</button><p>Na obou routerech ověř správné adresy a stav rozhraní <code>up/up</code>.</p></div>
+                <div class="command-row"><code>show ip route</code><button class="copy-button" type="button">Kopírovat</button><p>Ověř přítomnost statických cest do protější LAN.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><strong>CHECKPOINT:</strong> Z PC-vlevo pingni <code>192.168.2.10</code> a z PC-vpravo <code>192.168.1.10</code>. Než pokračuješ, musí být koncové počítače dosažitelné bez WireGuard.</div>
+        </article>
+
+        <header class="section-heading" id="komunikace">
+            <h2>5. Nešifrovaný provoz a NetCat</h2>
+            <p>Před vytvořením tunelu ověř základní komunikaci a procvič nasdílení dat nezabezpečeným kanálem.</p>
+        </header>
+        <article class="topic">
+            <ol>
+                <li>Ve Wiresharku na PC-vlevo začni záznam na rozhraní <code>enp0s31f6</code>.</li>
+                <li>Pro nešifrovanou komunikaci použij NetCat. Na PC-vpravo otevři posluchač portu 8888 a na PC-vlevo se připoj.</li>
+                <li>Odesílej libovolný text oběma směry, zachyť komunikaci a otevři <strong>Follow → TCP Stream</strong>.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>nc -l -p 8888</code><button class="copy-button" type="button">Kopírovat</button><p>Spustí NetCat posluchač na pravém počítači, který očekává TCP spojení na portu 8888.</p></div>
+                <div class="command-row"><code>nc 192.168.2.10 8888</code><button class="copy-button" type="button">Kopírovat</button><p>Z levého počítače vytvoří spojení na pravý počítač.</p></div>
+                <div class="command-row"><code>tcp.port == 8888</code><button class="copy-button" type="button">Kopírovat</button><p>Ve Wiresharku zobrazí pouze provoz NetCat komunikace.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning">Neodesílej citlivé informace. Účelem kroku je ověřit, že text bez VPN ve záchytu zůstane čitelný.</div>
+        </article>
+
+        <header class="section-heading" id="klice">
+            <h2>6–7. Klíče WireGuard a jejich sdílení</h2>
+            <p>Na každém počítači vytvoř unikátní pár privátního a veřejného klíče. Ovládej, který klíč patří kam.</p>
+        </header>
+        <article class="topic">
+            <h3>Vytvoření adresáře a klíčů</h3>
+            <div class="command-list">
+                <div class="command-row"><code>mkdir -p ~/wireguard-left</code><button class="copy-button" type="button">Kopírovat</button><p>Na PC-vlevo vytvoří adresář pro klíče. Na PC-vpravo použij <code>mkdir -p ~/wireguard-right</code>.</p></div>
+                <div class="command-row"><code>cd ~/wireguard-left</code><button class="copy-button" type="button">Kopírovat</button><p>Přesune se do adresáře levých klíčů; na pravém počítači otevři <code>~/wireguard-right</code>.</p></div>
+                <div class="command-row"><code>wg genkey | tee wg-private.key | wg pubkey &gt; wg-public.key</code><button class="copy-button" type="button">Kopírovat</button><p>Najednou vytvoří privátní a veřejný klíč. Název souborů vpravo/ vlevo musí jednoznačně odlišovat pracoviště.</p></div>
+                <div class="command-row"><code>chmod 400 wg-private.key</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví privátnímu klíči oprávnění pouze pro čtení aktuálním uživatelem.</p></div>
+                <div class="command-row"><code>ls -l</code><button class="copy-button" type="button">Kopírovat</button><p>Zkontroluje vytvořené soubory a oprávnění <code>-r--------</code> u privátního klíče.</p></div>
+                <div class="command-row"><code>cat wg-private.key</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí vlastní privátní klíč. Nikdy ho nesdílej protistraně.</p></div>
+                <div class="command-row"><code>cat wg-public.key</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí veřejný klíč určený k sdílení protistranou.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">Sdílení veřejných klíčů NetCatem</h3>
+            <div class="command-list">
+                <div class="command-row"><code>nc -l -p 9999 &gt; wg-public.key</code><button class="copy-button" type="button">Kopírovat</button><p>Na přijímajícím počítači otevře TCP posluchač na portu 9999 a uloží přijatý klíč do souboru.</p></div>
+                <div class="command-row"><code>cat wg-public.key | nc 192.168.X.X 9999</code><button class="copy-button" type="button">Kopírovat</button><p>Odesilatel pošle vlastní veřejný klíč protistraně na její laboratořní IP. Nahraď <code>192.168.X.X</code> skutečnou fyzickou adresou protějšího PC.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><strong>CHECKPOINT:</strong> Ve Wiresharku nebo výpisem ověř přijatý veřejný klíč protistrany. Veřejný klíč lze sdílet nezabezpečeně; privátní klíč zůstává pouze na vlastní straně.</div>
+        </article>
+
+        <header class="section-heading" id="rozhrani">
+            <h2>8–9. Rozhraní wg0 a port 51820</h2>
+            <p>Tyto příkazy vyžadují práva <code>sudo</code>. Vytvoř rozhraní <code>wg0</code>, přiřaď virtuální adresu a otevři UDP port.</p>
+        </header>
+        <article class="topic">
+            <h3>PC-vlevo</h3>
+            <div class="command-list">
+                <div class="command-row"><code>sudo ip link add dev wg0 type wireguard</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří WireGuard rozhraní <code>wg0</code>.</p></div>
+                <div class="command-row"><code>sudo ip address add dev wg0 192.168.5.1/24</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí levému PC virtuální adresu <code>192.168.5.1/24</code>.</p></div>
+                <div class="command-row"><code>sudo wg set wg0 listen-port 51820 private-key ./wg-private.key</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví UDP port a vlastní privátní klíč levého rozhraní.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">PC-vpravo</h3>
+            <div class="command-list">
+                <div class="command-row"><code>sudo ip link add dev wg0 type wireguard</code><button class="copy-button" type="button">Kopírovat</button><p>Vytvoří WireGuard rozhraní <code>wg0</code> na pravém PC.</p></div>
+                <div class="command-row"><code>sudo ip address add dev wg0 192.168.5.2/24</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí pravému PC virtuální adresu <code>192.168.5.2/24</code>.</p></div>
+                <div class="command-row"><code>sudo wg set wg0 listen-port 51820 private-key ./wg-private.key</code><button class="copy-button" type="button">Kopírovat</button><p>Nastaví UDP port 51820 a vlastní privátní klíč pravého rozhraní.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+        </article>
+
+        <header class="section-heading" id="peers">
+            <h2>10–11. Peer, AllowedIPs a aktivace</h2>
+            <p>Nastav protistranu pomocí jejího veřejného klíče a fyzického endpointu. Potom aktivuj rozhraní.</p>
+        </header>
+        <article class="topic">
+            <h3>PC-vlevo · peer PC-vpravo</h3>
+            <div class="command-list">
+                <div class="command-row"><code>sudo wg set wg0 peer &lt;VEŘEJNÝ_KLÍČ_PRAVÉHO_PC&gt; allowed-ips 192.168.5.2/32 endpoint 192.168.0.2:51820</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí pravý veřejný klíč, povolí virtuální IP <code>.2</code> a nastaví fyzický peer R2/PC. Náhradní cvičný endpoint ověř podle konkrétního zapojení.</p></div>
+                <div class="command-row"><code>sudo ip link set wg0 up</code><button class="copy-button" type="button">Kopírovat</button><p>Aktivuje levé WireGuard rozhraní.</p></div>
+            </div>
+            <h3 style="margin-top: 1.5rem">PC-vpravo · peer PC-vlevo</h3>
+            <div class="command-list">
+                <div class="command-row"><code>sudo wg set wg0 peer &lt;VEŘEJNÝ_KLÍČ_LEVÉHO_PC&gt; allowed-ips 192.168.5.1/32 endpoint 192.168.0.1:51820</code><button class="copy-button" type="button">Kopírovat</button><p>Přiřadí levý veřejný klíč, povolí virtuální IP <code>.1</code> a nastaví fyzický peer R1/PC.</p></div>
+                <div class="command-row"><code>sudo ip link set wg0 up</code><button class="copy-button" type="button">Kopírovat</button><p>Aktivuje pravé WireGuard rozhraní.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout"><strong>Pozor na klíče:</strong> levý privátní klíč se používá pouze na levém PC, pravý privátní pouze na pravém PC. Na levém peeru zadáváš veřejný klíč pravého PC a naopak.</div>
+        </article>
+
+        <header class="section-heading" id="overeni">
+            <h2>12. Ověření tunelu a Wireshark</h2>
+            <p>Nejdřív ověř virtuální spojení, potom sleduj čitelný provoz před a šifrovaný provoz v tunelu po navázání WireGuard.</p>
+        </header>
+        <article class="topic">
+            <div class="command-list">
+                <div class="command-row"><code>sudo wg</code><button class="copy-button" type="button">Kopírovat</button><p>Zobrazí rozhraní, veřejný klíč, listen port, peer endpoint a počítadla přijatých/o deslaných paketů.</p></div>
+                <div class="command-row"><code>ip address show wg0</code><button class="copy-button" type="button">Kopírovat</button><p>Ověří, že rozhraní má správnou virtuální adresu a stav <code>UP</code>.</p></div>
+                <div class="command-row"><code>ping -c 4 192.168.5.2</code><button class="copy-button" type="button">Kopírovat</button><p>Z levého PC ověří virtuální spojení na pravé PC; z pravého použij <code>ping -c 4 192.168.5.1</code>.</p></div>
+                <div class="command-row"><code>nc -l -p 8888</code><button class="copy-button" type="button">Kopírovat</button><p>Na pravém PC čeká NetCat na zprávy přes virtuální adresu.</p></div>
+                <div class="command-row"><code>nc 192.168.5.2 8888</code><button class="copy-button" type="button">Kopírovat</button><p>Z levého PC pošle NetCat zprávu na virtuální adresu pravého PC.</p></div>
+                <div class="command-row"><code>udp.port == 51820</code><button class="copy-button" type="button">Kopírovat</button><p>Ve Wiresharku zobrazí WireGuard pakety na výchozím portu.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><strong>CHECKPOINT:</strong> Ve Wiresharku porovnej nezabezpečený NetCat stream přes fyzickou síť a provoz po <code>wg0</code>. Když odesíláš virtuálními adresami, zachycený síťový provoz na portu 51820 má šifrovaný obsah a neměl by zobrazit text zprávy.</div>
+        </article>
+
+        <header class="section-heading" id="obnova">
+            <h2>13. Obnovení původního stavu</h2>
+            <p>Po skončení vypni a odeber laboratorní konfiguraci, restartuj zařízení a uklid pracoviště.</p>
+        </header>
+        <article class="topic">
+            <ol>
+                <li>Na obou PC vypni <code>wg0</code> a odeber rozhraní.</li>
+                <li>Restartuj R1 i R2. V případě dotazu na uložení změn zvol <code>no</code>.</li>
+                <li>Vrať laboratorní síťové adresy PC do původního nastavení a rozpoj kabely.</li>
+            </ol>
+            <div class="command-list">
+                <div class="command-row"><code>sudo ip link set wg0 down</code><button class="copy-button" type="button">Kopírovat</button><p>Deaktivuje WireGuard rozhraní.</p></div>
+                <div class="command-row"><code>sudo ip link delete dev wg0</code><button class="copy-button" type="button">Kopírovat</button><p>Odebere laboratorní rozhraní wg0 z PC.</p></div>
+                <div class="command-row"><code>reload</code><button class="copy-button" type="button">Kopírovat</button><p>Na routeru R1 i R2 provede restart. Při dotazu na uložení konfigurace zvol <code>no</code>.</p></div>
+                <div class="command-row"><code>write erase</code><button class="copy-button" type="button">Kopírovat</button><p>Volitelné dle pokynu cvičícího: smaže uloženou startovací konfiguraci před restartem.</p></div>
+            </div>
+            <p class="copy-status" aria-live="polite"></p>
+            <div class="callout warning"><strong>Neukládej laboratorní konfiguraci.</strong> Před odchodem ověř, že routery restartovaly, rozhraní <code>wg0</code> zmizelo a všechny kabely jsou uklizeny podle pokynů pracoviště.</div>
+        </article>
+
+        <footer>
+            Postup a adresy vycházejí z <code>docs/lab3.pdf</code>. Laboratorní zadání používá dvě Cisco 2811, HUB, dva PC, virtuální síť WireGuard <code>192.168.5.0/24</code> a UDP port <code>51820</code>. Názvy rozhraní, fyzické endpointy a klíče ověř vždy na konkrétním pracovišti.
+        </footer>
+    </main>
+    <script src="clipboard.js"></script>
+</body>
+</html>
